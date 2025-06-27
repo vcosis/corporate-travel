@@ -17,3 +17,4 @@
 /Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Infrastructure/obj/Debug/net9.0/CorporateTravel.Infrastructure.pdb
 /Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Infrastructure/obj/Debug/net9.0/CorporateTravel.Infrastructure.genruntimeconfig.cache
 /Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Infrastructure/obj/Debug/net9.0/ref/CorporateTravel.Infrastructure.dll
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Infrastructure/obj/Debug/net9.0/CorporateTravel.Infrastructure.sourcelink.json

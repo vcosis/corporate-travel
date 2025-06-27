@@ -160,6 +160,7 @@
 /Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.API/obj/Debug/net9.0/CorporateTravel.API.AssemblyInfo.cs
 /Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.API/obj/Debug/net9.0/CorporateTravel.API.csproj.CoreCompileInputs.cache
 /Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.API/obj/Debug/net9.0/CorporateTravel.API.MvcApplicationPartsAssemblyInfo.cache
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.API/obj/Debug/net9.0/CorporateTravel.API.sourcelink.json
 /Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.API/obj/Debug/net9.0/scopedcss/bundle/CorporateTravel.API.styles.css
 /Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.API/obj/Debug/net9.0/staticwebassets.build.json
 /Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.API/obj/Debug/net9.0/staticwebassets.development.json

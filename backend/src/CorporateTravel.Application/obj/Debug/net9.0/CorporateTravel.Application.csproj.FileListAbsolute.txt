@@ -13,3 +13,4 @@
 /Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Application/obj/Debug/net9.0/refint/CorporateTravel.Application.dll
 /Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Application/obj/Debug/net9.0/CorporateTravel.Application.pdb
 /Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Application/obj/Debug/net9.0/ref/CorporateTravel.Application.dll
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Application/obj/Debug/net9.0/CorporateTravel.Application.sourcelink.json

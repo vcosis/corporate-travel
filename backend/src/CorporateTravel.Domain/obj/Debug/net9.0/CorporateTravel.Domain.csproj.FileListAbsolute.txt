@@ -10,3 +10,4 @@
 /Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Domain/obj/Debug/net9.0/refint/CorporateTravel.Domain.dll
 /Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Domain/obj/Debug/net9.0/CorporateTravel.Domain.pdb
 /Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Domain/obj/Debug/net9.0/ref/CorporateTravel.Domain.dll
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Domain/obj/Debug/net9.0/CorporateTravel.Domain.sourcelink.json
