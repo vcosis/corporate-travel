@@ -1,0 +1,27 @@
+<nav class="breadcrumb-nav" aria-label="Breadcrumb navigation">
+  <ol class="breadcrumb-list">
+    <li class="breadcrumb-item" *ngFor="let item of items; let last = last; let i = index">
+      <ng-container *ngIf="!last">
+        <a *ngIf="item.route" 
+           [routerLink]="item.route" 
+           class="breadcrumb-link"
+           [attr.aria-label]="'Navigate to ' + item.label">
+          <mat-icon *ngIf="item.icon" class="breadcrumb-icon">{{ item.icon }}</mat-icon>
+          <span class="breadcrumb-text">{{ item.label }}</span>
+        </a>
+        <span *ngIf="!item.route" class="breadcrumb-text">
+          <mat-icon *ngIf="item.icon" class="breadcrumb-icon">{{ item.icon }}</mat-icon>
+          {{ item.label }}
+        </span>
+        <mat-icon class="breadcrumb-separator">chevron_right</mat-icon>
+      </ng-container>
+      
+      <ng-container *ngIf="last">
+        <span class="breadcrumb-text current">
+          <mat-icon *ngIf="item.icon" class="breadcrumb-icon">{{ item.icon }}</mat-icon>
+          {{ item.label }}
+        </span>
+      </ng-container>
+    </li>
+  </ol>
+</nav> 

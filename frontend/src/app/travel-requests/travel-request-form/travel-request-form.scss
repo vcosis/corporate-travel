@@ -1,0 +1,39 @@
+.form-container {
+  padding: 20px;
+}
+
+mat-card-header {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 20px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.half-width {
+  flex: 1;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+textarea {
+    min-height: 100px;
+}
+
+button {
+  width: 100%;
+  margin-top: 10px;
+}
+
+@media (max-width: 600px) {
+  .row {
+    flex-direction: column;
+    gap: 0;
+  }
+}

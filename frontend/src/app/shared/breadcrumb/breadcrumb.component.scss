@@ -1,0 +1,109 @@
+.breadcrumb-nav {
+  padding-top: 20px;
+  margin-bottom: 24px;
+  
+  // Para páginas que usam padding-left: 24px
+  &.users-page {
+    padding-left: 0;
+    margin-left: 2px;
+  }
+
+  &.dashboard-page {
+    padding-left: 0;
+    margin-left: 2px;
+  }
+
+  &.notifications-page {
+    padding-left: 0;
+    margin-left: 2px;
+  }
+}
+
+.breadcrumb-list {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.breadcrumb-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--primary-color);
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  padding-left: 0;
+  
+  &:hover {
+    background-color: var(--hover-color);
+    color: var(--primary-dark);
+  }
+  
+  &:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
+}
+
+.breadcrumb-text {
+  display: flex;
+  align-items: center;
+  font-weight: 400;
+  
+  &.current {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+}
+
+.breadcrumb-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  margin-right: 6px;
+  opacity: 0.7;
+}
+
+.breadcrumb-separator {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: var(--text-disabled);
+  margin: 0 4px;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .breadcrumb-list {
+    font-size: 13px;
+  }
+  
+  .breadcrumb-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+  }
+  
+  .breadcrumb-separator {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+  
+  .breadcrumb-link {
+    padding: 2px 6px;
+  }
+} 

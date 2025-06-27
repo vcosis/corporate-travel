@@ -1,0 +1,48 @@
+<div class="form-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>{{ isEditMode ? 'Edit Travel Request' : 'New Travel Request' }}</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="travelRequestForm" (ngSubmit)="onSubmit()">
+        <div class="row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Origin</mat-label>
+            <input matInput formControlName="origin" placeholder="e.g., New York" required>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Destination</mat-label>
+            <input matInput formControlName="destination" placeholder="e.g., London" required>
+          </mat-form-field>
+        </div>
+
+        <div class="row">
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>Start Date</mat-label>
+            <input matInput [matDatepicker]="startPicker" formControlName="startDate" required>
+            <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+            <mat-datepicker #startPicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="half-width">
+            <mat-label>End Date</mat-label>
+            <input matInput [matDatepicker]="endPicker" formControlName="endDate" required>
+            <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+            <mat-datepicker #endPicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Reason</mat-label>
+          <textarea matInput formControlName="reason" placeholder="e.g., Project meeting" required></textarea>
+        </mat-form-field>
+
+        <button mat-stroked-button color="primary" type="submit" [disabled]="!travelRequestForm.valid || loading">
+          <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+          <span *ngIf="!loading">{{ isEditMode ? 'Update Request' : 'Submit Request' }}</span>
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

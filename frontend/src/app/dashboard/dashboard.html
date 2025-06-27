@@ -1,0 +1,118 @@
+<div class="dashboard-container">
+  <app-breadcrumb [items]="breadcrumbItems" class="dashboard-page"></app-breadcrumb>
+  
+  <div class="dashboard-header">
+    <div class="title-section">
+      <h2>Dashboard</h2>
+      <p class="subtitle">Visão geral e estatísticas do sistema de viagens corporativas</p>
+    </div>
+  </div>
+
+  <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+
+  <div *ngIf="error" class="error-message">
+    <mat-icon>error</mat-icon>
+    <span>Falha ao carregar dados do dashboard. Tente novamente mais tarde.</span>
+  </div>
+
+  <div class="stats-grid">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon pending">
+            <mat-icon>schedule</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ stats.pending || 0 }}</h3>
+            <p>Solicitações Pendentes</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon approved">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ stats.approved || 0 }}</h3>
+            <p>Solicitações Aprovadas</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon rejected">
+            <mat-icon>cancel</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ stats.rejected || 0 }}</h3>
+            <p>Solicitações Rejeitadas</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <div class="stat-content">
+          <div class="stat-icon total">
+            <mat-icon>assessment</mat-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ stats.total || 0 }}</h3>
+            <p>Total de Solicitações</p>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="charts-grid">
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>Distribuição por Status</mat-card-title>
+        <mat-card-subtitle>Distribuição das solicitações de viagem por status</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="chart-container">
+          <canvas baseChart
+            [data]="pieChartData"
+            [type]="pieChartType"
+            [options]="pieChartOptions">
+          </canvas>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>Atividade Recente</mat-card-title>
+        <mat-card-subtitle>Últimas solicitações de viagem</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="recent-activity">
+          <div *ngIf="recentRequests.length === 0" class="no-data">
+            <mat-icon>info</mat-icon>
+            <p>Nenhuma atividade recente</p>
+          </div>
+          <div *ngFor="let request of recentRequests" class="activity-item">
+            <div class="activity-icon" [ngClass]="getStatusClass(request.status)">
+              <mat-icon>{{ getStatusIcon(request.status) }}</mat-icon>
+            </div>
+            <div class="activity-content">
+              <h4>{{ request.destination }}</h4>
+              <p>{{ request.reason }}</p>
+              <span class="activity-date">{{ request.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

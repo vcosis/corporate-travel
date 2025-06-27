@@ -1,0 +1,65 @@
+<button mat-icon-button [matMenuTriggerFor]="notificationMenu" class="notification-bell-button">
+  <mat-icon
+    matBadge="{{ unreadCount }}"
+    matBadgeColor="warn"
+    [matBadgeHidden]="unreadCount === 0">
+    notifications_none
+  </mat-icon>
+</button>
+
+<mat-menu #notificationMenu="matMenu" class="notification-menu" 
+          [hasBackdrop]="true" 
+          backdropClass="notification-menu-backdrop">
+  
+  <div class="notification-header">
+    <h3>Notificações</h3>
+    <button *ngIf="unreadCount > 0" 
+            mat-button 
+            color="primary" 
+            (click)="onMarkAllAsRead()"
+            class="mark-all-read-btn">
+      Marcar todas como lidas
+    </button>
+  </div>
+
+  <div class="notification-list">
+    <div *ngIf="notifications.length === 0" class="no-notifications">
+      <mat-icon>notifications_none</mat-icon>
+      <p>Nenhuma notificação</p>
+    </div>
+
+    <div *ngFor="let notification of notifications; trackBy: trackByNotificationId" 
+         class="notification-item"
+         [class.unread]="!notification.isRead"
+         (click)="onNotificationClick(notification)">
+      <div class="notification-avatar-block">
+        <img *ngIf="notification.requesterAvatarUrl" [src]="notification.requesterAvatarUrl" class="notification-avatar" alt="Avatar" />
+        <div *ngIf="!notification.requesterAvatarUrl" class="notification-avatar-fallback">
+          {{ notification.requesterName ? notification.requesterName.charAt(0) : '?' }}
+        </div>
+      </div>
+      <div class="notification-content">
+        <div class="notification-main">
+          <span class="notification-requester-name">{{ notification.requesterName || 'Solicitante' }}</span>
+          <span class="notification-title-text">{{ notification.title }}</span>
+        </div>
+        <p class="notification-message">{{ getMainMessage(notification) }}</p>
+        <div *ngIf="getRouteInfo(notification) as route" class="notification-route">
+          <span class="highlight">{{ route.origem }}</span>
+          <span class="arrow">→</span>
+          <span class="highlight">{{ route.destino }}</span>
+        </div>
+        <div class="notification-time-row">
+          <span class="notification-time">{{ formatDate(notification.createdAt) }}</span>
+          <div *ngIf="!notification.isRead" class="unread-indicator"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notification-footer">
+    <button mat-button color="primary" (click)="onViewAllNotifications()">
+      Ver todas as notificações
+    </button>
+  </div>
+</mat-menu> 

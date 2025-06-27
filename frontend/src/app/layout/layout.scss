@@ -1,0 +1,304 @@
+.main-toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.sidenav-container {
+  height: 100vh;
+
+  ::ng-deep .mat-mdc-sidenav {
+    border-radius: 0 !important;
+  }
+
+  ::ng-deep .mat-mdc-sidenav-container {
+    border-radius: 0 !important;
+  }
+
+  ::ng-deep .mat-mdc-sidenav-content {
+    border-radius: 0 !important;
+  }
+}
+
+.sidenav {
+  width: 280px;
+  min-width: 280px;
+  z-index: 1001;
+  background: var(--sidenav-bg);
+  color: var(--sidenav-text);
+  transition: width 0.2s, background 0.2s;
+  border-radius: 0 !important;
+
+  ::ng-deep .mat-mdc-sidenav {
+    border-radius: 0 !important;
+  }
+
+  ::ng-deep .mat-mdc-sidenav-container {
+    border-radius: 0 !important;
+  }
+
+  ::ng-deep .mat-mdc-sidenav-content {
+    border-radius: 0 !important;
+  }
+}
+
+.sidenav.collapsed {
+  width: 72px !important;
+  min-width: 72px !important;
+}
+
+.sidenav.collapsed .sidenav-header {
+  justify-content: flex-end;
+}
+
+.sidenav.collapsed .mat-nav-list a {
+  justify-content: center;
+}
+
+.sidenav.collapsed .mat-nav-list a mat-icon {
+  margin: 0;
+}
+
+.sidenav.collapsed .mat-nav-list a span {
+  display: none;
+}
+
+.sidenav .mat-toolbar {
+  background: inherit;
+}
+
+.sidenav-toolbar {
+  display: flex;
+  align-items: center;
+  height: 64px;
+  background: var(--primary-color);
+  color: #fff;
+  padding: 0 16px;
+
+  .mat-icon, .app-title, button {
+    color: #fff !important;
+    fill: #fff !important;
+  }
+}
+
+.sidenav-toolbar .app-title {
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-left: 8px;
+}
+
+.sidenav-toolbar .spacer {
+  flex: 1 1 auto;
+}
+
+.close-sidenav-btn {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .close-sidenav-btn {
+    display: block;
+  }
+}
+
+.mat-toolbar.mat-primary {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--toolbar-bg) !important;
+  color: var(--toolbar-text) !important;
+  border-bottom: 1px solid var(--toolbar-border);
+  box-shadow: none;
+}
+
+.main-content {
+  padding: 0;
+  min-height: calc(100vh - 64px);
+  background-color: var(--background-color);
+}
+
+.content-wrapper {
+  width: 100%;
+  height: 100%;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.app-title {
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-left: 8px;
+}
+
+.user-info {
+  margin-right: 8px;
+  font-size: 0.9rem;
+}
+
+.active-link {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+}
+
+.active-link mat-icon {
+  color: var(--primary-color);
+}
+
+mat-nav-list {
+  padding-top: 8px;
+}
+
+mat-nav-list a {
+  display: flex;
+  align-items: center;
+  line-height: 1;
+  padding: 7px 16px;
+  text-decoration: none;
+  color: var(--sidenav-text);
+  margin: 2px 4px;
+  transition: background 0.22s, color 0.22s;
+  font-weight: 400;
+  font-size: 0.97rem;
+  gap: 14px;
+  letter-spacing: 0.01em;
+  opacity: 0.8;
+}
+
+mat-nav-list a:hover {
+  background: var(--sidenav-hover);
+  color: var(--sidenav-text);
+  opacity: 1;
+}
+
+mat-nav-list a.active-link {
+  background: var(--sidenav-active);
+  color: var(--sidenav-text);
+  opacity: 1;
+}
+
+mat-nav-list a mat-icon {
+  margin-right: 10px;
+  width: 20px;
+  height: 20px;
+  font-size: 18px;
+  color: var(--sidenav-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  transition: color 0.22s;
+  opacity: 0.8;
+}
+
+mat-nav-list a.active-link mat-icon,
+mat-nav-list a:hover mat-icon {
+  color: var(--sidenav-text);
+  opacity: 1;
+}
+
+mat-nav-list a span {
+  font-size: 0.97rem;
+  font-weight: 400;
+  white-space: nowrap;
+  color: var(--sidenav-text);
+  transition: color 0.22s;
+  letter-spacing: 0.01em;
+  display: inline;
+  vertical-align: middle;
+  opacity: 0.8;
+}
+
+mat-nav-list a.active-link span,
+mat-nav-list a:hover span {
+  color: var(--sidenav-text);
+  opacity: 1;
+}
+
+.sidenav-section-title {
+  font-size: 0.75rem;
+  color: var(--sidenav-text);
+  opacity: 0.5;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin: 18px 0 6px 18px;
+  font-weight: 500;
+}
+
+mat-sidenav-content {
+  background-color: var(--background-color) !important;
+}
+
+.sidenav-header {
+  display: flex;
+  align-items: center;
+  height: 64px;
+  background: var(--sidenav-bg);
+  color: var(--sidenav-text);
+  padding: 0 16px;
+}
+
+.sidenav-header .app-title {
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-left: 8px;
+  color: var(--sidenav-text);
+}
+
+.sidenav-header .mat-icon, .sidenav-header button {
+  color: var(--sidenav-text) !important;
+  fill: var(--sidenav-text) !important;
+}
+
+.sidenav-header .spacer {
+  flex: 1 1 auto;
+}
+
+@media (min-width: 600px) {
+  .mat-sidenav-content {
+    margin-left: 280px;
+    transition: margin-left 0.2s;
+  }
+  .sidebar-collapsed.mat-sidenav-content {
+    margin-left: 72px !important;
+  }
+}
+
+button.mat-mdc-raised-button.mat-primary,
+.mat-mdc-raised-button.mat-primary {
+  --mdc-protected-button-container-color: var(--primary-color) !important;
+  --mdc-protected-button-label-text-color: #fff !important;
+  --mdc-protected-button-container-elevation: 0;
+  --mdc-protected-button-container-shape: 24px;
+  font-weight: 600;
+  border-radius: 24px !important;
+}
+
+button.mat-mdc-raised-button.mat-primary:hover,
+.mat-mdc-raised-button.mat-primary:hover {
+  --mdc-protected-button-container-color: var(--primary-dark) !important;
+}
+
+// Avatar alinhado no topo (toolbar)
+app-user-menu {
+  margin-right: 28px;
+}
+
+// Ícone de notificação no topo
+::ng-deep app-notification-bell mat-icon {
+  color: var(--text-secondary) !important;
+}
+
+.user-toolbar-name {
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--toolbar-text);
+  margin-right: 12px;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}

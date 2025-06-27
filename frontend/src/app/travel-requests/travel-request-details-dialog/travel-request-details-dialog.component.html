@@ -1,0 +1,107 @@
+<div class="approval-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>
+      Solicitação de Viagem
+    </h2>
+    <button mat-icon-button (click)="close()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+    <div class="travel-request-details">
+      <!-- Informações do solicitante -->
+      <mat-card class="info-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>person</mat-icon>
+            Solicitante
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="info-row">
+            <span class="label">Nome:</span>
+            <span class="value">{{ travelRequest.requestingUserName || 'N/A' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Data da solicitação:</span>
+            <span class="value">{{ travelRequest.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Detalhes da viagem -->
+      <mat-card class="info-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>flight_takeoff</mat-icon>
+            Detalhes da Viagem
+          </mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="travel-details">
+            <!-- Status da requisição (integrado) -->
+            <div class="status-info">
+              <span class="label">Status:</span>
+              <div class="status-value">
+                <span class="status-text">{{ getStatusDescription(travelRequest.status) }}</span>
+              </div>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <div class="flight-summary-row">
+              <div class="flight-col">
+                <div class="flight-date">{{ travelRequest.startDate | date:'EEE. dd MMM.' }}</div>
+                <div class="flight-city">{{ travelRequest.origin }}</div>
+                <div class="flight-label">Origem</div>
+              </div>
+              <div class="flight-arrow">
+                <mat-icon>arrow_forward</mat-icon>
+              </div>
+              <div class="flight-col">
+                <div class="flight-date">{{ travelRequest.endDate | date:'EEE. dd MMM.' }}</div>
+                <div class="flight-city">{{ travelRequest.destination }}</div>
+                <div class="flight-label">Destino</div>
+              </div>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <div class="reason-section" style="margin-top: 24px;">
+              <span class="label">Motivo da viagem:</span>
+              <p class="reason-text">{{ travelRequest.reason }}</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="dialog-actions">
+    <div class="actions-container">
+      <button mat-button matButton="tonal" 
+              (click)="reject()" 
+              [disabled]="loadingApprove || loadingReject" 
+              *ngIf="canApprove && travelRequest.status.toLowerCase() === 'pending'"
+              class="action-button">
+        <div class="button-content">
+          <mat-spinner *ngIf="loadingReject" diameter="16" strokeWidth="2"></mat-spinner>
+          <mat-icon *ngIf="!loadingReject">cancel</mat-icon>
+          <span>Rejeitar</span>
+        </div>
+      </button>
+      <button mat-button matButton="tonal" 
+              (click)="approve()" 
+              [disabled]="loadingApprove || loadingReject" 
+              *ngIf="canApprove && travelRequest.status.toLowerCase() === 'pending'"
+              class="action-button">
+        <div class="button-content">
+          <mat-spinner *ngIf="loadingApprove" diameter="16" strokeWidth="2"></mat-spinner>
+          <mat-icon *ngIf="!loadingApprove">check</mat-icon>
+          <span>Aprovar</span>
+        </div>
+      </button>
+    </div>
+  </mat-dialog-actions>
+</div> 

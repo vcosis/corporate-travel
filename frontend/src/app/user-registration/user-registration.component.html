@@ -1,0 +1,91 @@
+<div class="registration-container">
+  <mat-card class="registration-card">
+    <mat-card-header>
+      <mat-card-title>Cadastro de Usuário</mat-card-title>
+      <mat-card-subtitle>Apenas administradores podem cadastrar novos usuários</mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()" class="registration-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nome</mat-label>
+          <input matInput formControlName="name" placeholder="Digite o nome completo">
+          <mat-error *ngIf="registrationForm.get('name')?.hasError('required')">
+            {{ getErrorMessage('name') }}
+          </mat-error>
+          <mat-error *ngIf="registrationForm.get('name')?.hasError('minlength')">
+            {{ getErrorMessage('name') }}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input matInput formControlName="email" type="email" placeholder="Digite o email">
+          <mat-error *ngIf="registrationForm.get('email')?.hasError('required')">
+            {{ getErrorMessage('email') }}
+          </mat-error>
+          <mat-error *ngIf="registrationForm.get('email')?.hasError('email')">
+            {{ getErrorMessage('email') }}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Perfil</mat-label>
+          <mat-select formControlName="role">
+            <mat-option *ngFor="let role of roles" [value]="role.value">
+              {{ role.label }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="registrationForm.get('role')?.hasError('required')">
+            {{ getErrorMessage('role') }}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Senha</mat-label>
+          <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" placeholder="Digite a senha">
+          <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+            <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+          </button>
+          <mat-error *ngIf="registrationForm.get('password')?.hasError('required')">
+            {{ getErrorMessage('password') }}
+          </mat-error>
+          <mat-error *ngIf="registrationForm.get('password')?.hasError('minlength')">
+            {{ getErrorMessage('password') }}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Confirmar Senha</mat-label>
+          <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="confirmPassword" placeholder="Confirme a senha">
+          <mat-error *ngIf="registrationForm.get('confirmPassword')?.hasError('required')">
+            {{ getErrorMessage('confirmPassword') }}
+          </mat-error>
+          <mat-error *ngIf="registrationForm.get('confirmPassword')?.hasError('passwordMismatch')">
+            {{ getErrorMessage('confirmPassword') }}
+          </mat-error>
+        </mat-form-field>
+
+        <div class="form-actions">
+          <button 
+            mat-stroked-button 
+            color="primary" 
+            type="submit" 
+            [disabled]="registrationForm.invalid || isLoading"
+            class="submit-button">
+            <mat-icon *ngIf="isLoading" class="spinner">hourglass_empty</mat-icon>
+            {{ isLoading ? 'Cadastrando...' : 'Cadastrar Usuário' }}
+          </button>
+          
+          <button 
+            mat-button 
+            type="button" 
+            (click)="router.navigate(['/users'])"
+            class="cancel-button">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div> 

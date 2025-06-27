@@ -1,0 +1,15 @@
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Application/bin/Debug/net9.0/CorporateTravel.Application.deps.json
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Application/bin/Debug/net9.0/CorporateTravel.Application.dll
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Application/bin/Debug/net9.0/CorporateTravel.Application.pdb
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Application/bin/Debug/net9.0/CorporateTravel.Domain.dll
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Application/bin/Debug/net9.0/CorporateTravel.Domain.pdb
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Application/obj/Debug/net9.0/CorporateTravel.Application.csproj.AssemblyReference.cache
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Application/obj/Debug/net9.0/CorporateTravel.Application.GeneratedMSBuildEditorConfig.editorconfig
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Application/obj/Debug/net9.0/CorporateTravel.Application.AssemblyInfoInputs.cache
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Application/obj/Debug/net9.0/CorporateTravel.Application.AssemblyInfo.cs
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Application/obj/Debug/net9.0/CorporateTravel.Application.csproj.CoreCompileInputs.cache
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Application/obj/Debug/net9.0/Corporat.D00D754B.Up2Date
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Application/obj/Debug/net9.0/CorporateTravel.Application.dll
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Application/obj/Debug/net9.0/refint/CorporateTravel.Application.dll
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Application/obj/Debug/net9.0/CorporateTravel.Application.pdb
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Application/obj/Debug/net9.0/ref/CorporateTravel.Application.dll

@@ -1,0 +1,40 @@
+@use '@angular/material' as mat;
+
+html {
+  color-scheme: light;
+  @include mat.theme((
+    color: mat.$azure-palette,
+    typography: Roboto,
+    density: 0
+  ));
+}
+
+body.dark-mode {
+  color-scheme: dark;
+  
+  // Configurações adicionais para o modo escuro
+  --mat-sys-color-primary: #90caf9;
+  --mat-sys-color-on-primary: #000000;
+  --mat-sys-color-primary-container: #1976d2;
+  --mat-sys-color-on-primary-container: #ffffff;
+  
+  --mat-sys-color-secondary: #81c784;
+  --mat-sys-color-on-secondary: #000000;
+  --mat-sys-color-secondary-container: #388e3c;
+  --mat-sys-color-on-secondary-container: #ffffff;
+  
+  --mat-sys-color-surface: #121212;
+  --mat-sys-color-on-surface: #ffffff;
+  --mat-sys-color-surface-variant: #1e1e1e;
+  --mat-sys-color-on-surface-variant: #b0b0b0;
+  
+  --mat-sys-color-background: #121212;
+  --mat-sys-color-on-background: #ffffff;
+  
+  --mat-sys-color-error: #f44336;
+  --mat-sys-color-on-error: #ffffff;
+  
+  --mat-sys-color-outline: #424242;
+  --mat-sys-color-outline-variant: #616161;
+}
+

@@ -1,0 +1,12 @@
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Domain/bin/Debug/net9.0/CorporateTravel.Domain.deps.json
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Domain/bin/Debug/net9.0/CorporateTravel.Domain.dll
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Domain/bin/Debug/net9.0/CorporateTravel.Domain.pdb
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Domain/obj/Debug/net9.0/CorporateTravel.Domain.csproj.AssemblyReference.cache
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Domain/obj/Debug/net9.0/CorporateTravel.Domain.GeneratedMSBuildEditorConfig.editorconfig
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Domain/obj/Debug/net9.0/CorporateTravel.Domain.AssemblyInfoInputs.cache
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Domain/obj/Debug/net9.0/CorporateTravel.Domain.AssemblyInfo.cs
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Domain/obj/Debug/net9.0/CorporateTravel.Domain.csproj.CoreCompileInputs.cache
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Domain/obj/Debug/net9.0/CorporateTravel.Domain.dll
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Domain/obj/Debug/net9.0/refint/CorporateTravel.Domain.dll
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Domain/obj/Debug/net9.0/CorporateTravel.Domain.pdb
+/Users/diegofernandes/Repositories/corporate-travel/backend/src/CorporateTravel.Domain/obj/Debug/net9.0/ref/CorporateTravel.Domain.dll

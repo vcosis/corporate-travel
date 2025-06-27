@@ -1,0 +1,217 @@
+.profile-container {
+  padding: 0 24px 24px 24px;
+  background-color: var(--background-color);
+  min-height: calc(100vh - 64px);
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+
+  .title-section {
+    h2 {
+      margin: 0;
+      color: var(--text-primary);
+      font-size: 24px;
+      font-weight: 400;
+    }
+
+    .subtitle {
+      margin: 4px 0 0 0;
+      color: var(--text-secondary);
+      font-size: 15px;
+      font-weight: 300;
+      line-height: 1.4;
+    }
+  }
+}
+
+.profile-content {
+  max-width: 800px;
+}
+
+.profile-section {
+  padding: 32px 0;
+
+  &:first-child {
+    padding-top: 0;
+  }
+
+  &:last-child {
+    padding-bottom: 0;
+  }
+}
+
+.section-header {
+  margin-bottom: 24px;
+
+  h3 {
+    margin: 0 0 8px 0;
+    color: var(--text-primary);
+    font-size: 20px;
+    font-weight: 500;
+  }
+
+  .section-description {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.4;
+  }
+}
+
+.profile-form,
+.password-form {
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .form-field {
+    width: 100%;
+
+    ::ng-deep .mat-mdc-form-field {
+      --mdc-filled-text-field-container-height: 48px;
+      --mdc-outlined-text-field-container-height: 48px;
+    }
+  }
+}
+
+.password-form {
+  .form-row {
+    &:first-child {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+.section-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--divider-color);
+
+  button {
+    min-width: 140px;
+  }
+}
+
+.password-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--warn-color);
+  font-size: 14px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background-color: rgba(244, 67, 54, 0.1);
+  border-radius: 4px;
+  border-left: 4px solid var(--warn-color);
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+body.dark-mode .password-error {
+  background-color: rgba(244, 67, 54, 0.2);
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+
+  p {
+    margin: 16px 0 0 0;
+    color: var(--text-secondary);
+    font-size: 16px;
+  }
+}
+
+mat-divider {
+  margin: 0;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 16px;
+  }
+
+  .profile-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+    margin-bottom: 24px;
+
+    .title-section {
+      text-align: center;
+
+      h2 {
+        text-align: center;
+        font-size: 22px;
+      }
+
+      .subtitle {
+        text-align: center;
+        font-size: 14px;
+      }
+    }
+  }
+
+  .profile-content {
+    max-width: 100%;
+  }
+
+  .profile-section {
+    padding: 24px 0;
+
+    &:first-child {
+      padding-top: 0;
+    }
+  }
+
+  .section-header {
+    margin-bottom: 20px;
+
+    h3 {
+      font-size: 18px;
+    }
+
+    .section-description {
+      font-size: 13px;
+    }
+  }
+
+  .profile-form,
+  .password-form {
+    .form-row {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  .section-actions {
+    flex-direction: column;
+    gap: 8px;
+
+    button {
+      min-width: 100%;
+    }
+  }
+} 

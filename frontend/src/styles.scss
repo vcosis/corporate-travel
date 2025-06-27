@@ -1,0 +1,425 @@
+@use 'theme/custom-theme';
+
+/* You can add global styles to this file, and also import other style files */
+
+html, body { 
+  height: 100%; 
+  margin: 0; 
+  font-family: Roboto, "Helvetica Neue", sans-serif; 
+}
+
+* {
+  box-sizing: border-box;
+}
+
+// Sincroniza variáveis customizadas com as do Angular Material
+:root, body {
+  --primary-color: var(--mat-sys-primary);
+  --primary-light: var(--mat-sys-primary-container);
+  --primary-dark: var(--mat-sys-inverse-primary);
+  --accent-color: var(--mat-sys-secondary);
+  --warn-color: var(--mat-sys-error);
+  --success-color: var(--mat-sys-secondary);
+  --background-color: #ffffff;
+  --surface-color: #fff;
+  --card-color: #fff;
+  --text-primary: var(--mat-sys-on-surface, #212121);
+  --text-secondary: var(--mat-sys-on-surface-variant, #757575);
+  --text-disabled: var(--mat-sys-on-surface, #bdbdbd);
+  --divider-color: var(--mat-sys-outline-variant, #e0e0e0);
+  --border-color: var(--mat-sys-outline, #e0e0e0);
+  --shadow-color: rgba(0, 0, 0, 0.12);
+  --hover-color: rgba(0,0,0,0.04);
+  // Cores para status (light mode)
+  --pending-bg: #ff9800;
+  --on-pending: #ffffff;
+  --approved-bg: #4caf50;
+  --on-approved: #ffffff;
+  --rejected-bg: #f44336;
+  --on-rejected: #ffffff;
+  // Layout original
+  --sidenav-bg: #0d0e12;
+  --sidenav-text: #fff;
+  --sidenav-hover: #23232b;
+  --sidenav-active: #23232b;
+  --toolbar-bg: #fff;
+  --toolbar-text: #212121;
+  --toolbar-border: #e0e0e0;
+}
+
+body.dark-mode {
+  // Cores para status (dark mode)
+  --pending-bg: #ffb74d;
+  --on-pending: #000;
+  --approved-bg: #81c784;
+  --on-approved: #000;
+  --rejected-bg: #e57373;
+  --on-rejected: #000;
+  // Layout dark
+  --sidenav-bg: #23272b;
+  --sidenav-text: #fff;
+  --sidenav-hover: #2d2d2d;
+  --sidenav-active: #2d2d2d;
+  --toolbar-bg: #23272b;
+  --toolbar-text: #fff;
+  --toolbar-border: #424242;
+  --card-color: #23272b;
+  --background-color: #18191a;
+  --surface-color: #23272b;
+}
+
+body {
+  background: var(--background-color);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Global styles for snackbars */
+.success-snackbar {
+  background: var(--success-color) !important;
+  color: white !important;
+}
+
+.success-snackbar .mat-simple-snackbar-action {
+  color: white !important;
+}
+
+.error-snackbar {
+  background: var(--warn-color) !important;
+  color: white !important;
+}
+
+.error-snackbar .mat-simple-snackbar-action {
+  color: white !important;
+}
+
+/* Global styles for confirmation dialogs */
+.confirmation-dialog-panel {
+  border-radius: 8px !important;
+}
+
+.confirmation-dialog-panel .mat-mdc-dialog-container {
+  border-radius: 8px !important;
+}
+
+/* Focus styles for better accessibility */
+.mat-mdc-dialog-container:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Responsive improvements */
+@media (max-width: 600px) {
+  .mat-mdc-dialog-container {
+    margin: 16px !important;
+  }
+}
+
+/* Dark mode styles for dialogs */
+body.dark-mode .mat-mdc-dialog-container {
+  background-color: var(--surface-color) !important;
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .mat-mdc-dialog-container .mat-mdc-dialog-surface {
+  background-color: var(--surface-color) !important;
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .mat-mdc-dialog-container h2 {
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .mat-mdc-dialog-container p {
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .mat-mdc-dialog-container .mat-mdc-form-field {
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .mat-mdc-dialog-container .mat-mdc-form-field-label {
+  color: var(--text-secondary) !important;
+}
+
+body.dark-mode .mat-mdc-dialog-container .mat-mdc-form-field-outline {
+  color: var(--divider-color) !important;
+}
+
+body.dark-mode .mat-mdc-dialog-container .mat-mdc-form-field-outline-thick {
+  color: var(--primary-color) !important;
+}
+
+body.dark-mode .mat-mdc-dialog-container input,
+body.dark-mode .mat-mdc-dialog-container textarea {
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .mat-mdc-dialog-container input::placeholder,
+body.dark-mode .mat-mdc-dialog-container textarea::placeholder {
+  color: var(--text-secondary) !important;
+  opacity: 0.7 !important;
+}
+
+body.dark-mode .mat-mdc-dialog-container .mat-mdc-select-value {
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .mat-mdc-dialog-container .mat-mdc-select-arrow {
+  color: var(--text-secondary) !important;
+}
+
+body.dark-mode .mat-mdc-dialog-container .mat-mdc-select-panel {
+  background-color: var(--surface-color) !important;
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .mat-mdc-dialog-container .mat-mdc-option {
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .mat-mdc-dialog-container .mat-mdc-option:hover {
+  background-color: var(--hover-color) !important;
+}
+
+body.dark-mode .mat-mdc-dialog-container .mat-mdc-option.mat-mdc-option-active {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+body.dark-mode .mat-mdc-dialog-container .mat-mdc-option.mat-mdc-selected {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+body.dark-mode .mat-mdc-dialog-container .mat-mdc-datepicker-content {
+  background-color: var(--surface-color) !important;
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .mat-mdc-dialog-container .mat-mdc-calendar {
+  background-color: var(--surface-color) !important;
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .mat-mdc-dialog-container .mat-mdc-calendar-body-cell {
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .mat-mdc-dialog-container .mat-mdc-calendar-body-cell:hover {
+  background-color: var(--hover-color) !important;
+}
+
+body.dark-mode .mat-mdc-dialog-container .mat-mdc-calendar-body-selected {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+body.dark-mode .mat-mdc-dialog-container .mat-mdc-datepicker-toggle {
+  color: var(--text-secondary) !important;
+}
+
+body.dark-mode .mat-mdc-dialog-container .mat-mdc-error {
+  color: var(--warn-color) !important;
+}
+
+/* Notification Toast Styles */
+.notification-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px var(--shadow-color);
+  padding: 16px;
+  min-width: 300px;
+  max-width: 400px;
+  z-index: 10000;
+  animation: slideInRight 0.3s ease-out;
+}
+
+body.dark-mode .notification-toast {
+  background: #23272b;
+  border-color: #424242;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.notification-toast-content h4 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+body.dark-mode .notification-toast-content h4 {
+  color: #ffffff;
+}
+
+.notification-toast-content p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+body.dark-mode .notification-toast-content p {
+  color: #b0b0b0;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Notification Bell Styles */
+.notification-bell-button {
+  position: relative;
+}
+
+.notification-menu {
+  max-width: 400px;
+  max-height: 500px;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+}
+
+body.dark-mode .notification-menu {
+  background: #23272b;
+  border-color: #424242;
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: var(--card-color);
+  border-bottom: 1px solid var(--divider-color);
+}
+
+body.dark-mode .notification-header {
+  background: #1a1a1a;
+  border-bottom-color: #424242;
+}
+
+.notification-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.mark-all-read-btn {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.notification-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.no-notifications {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-secondary);
+}
+
+.no-notifications mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--divider-color);
+  cursor: pointer;
+  transition: background-color 0.2s;
+  background: var(--surface-color);
+}
+
+.notification-item:hover {
+  background-color: var(--hover-color);
+}
+
+.notification-item.unread {
+  background-color: rgba(25, 118, 210, 0.08);
+}
+
+.notification-item.unread:hover {
+  background-color: rgba(25, 118, 210, 0.12);
+}
+
+.notification-icon {
+  margin-right: 12px;
+  margin-top: 2px;
+}
+
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-content .notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 4px;
+  background: none;
+  padding: 0;
+  border: none;
+}
+
+.notification-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.notification-time {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  margin-left: 8px;
+}
+
+.notification-message {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.notification-entity {
+  margin-top: 8px;
+}
+
+.unread-indicator {
+  width: 8px;
+  height: 8px;
+  background-color: var(--primary-color);
+  border-radius: 50%;
+  margin-left: 8px;
+  margin-top: 8px;
+}
+
+.notification-footer {
+  padding: 12px 16px;
+  text-align: center;
+  background: var(--card-color);
+  border-top: 1px solid var(--divider-color);
+}
