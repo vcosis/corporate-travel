@@ -65,6 +65,7 @@ services:
     container_name: corporatetravel-seq
     environment:
       - ACCEPT_EULA=Y
+      - SEQ_FIRSTRUN_ADMINPASSWORD=Admin123!
     ports:
       - "5341:80"
       - "5342:5342"
@@ -79,6 +80,8 @@ services:
       retries: 3
 
 volumes:
+  seq_data:
+    driver: local
   postgres_data:
     driver: local
 

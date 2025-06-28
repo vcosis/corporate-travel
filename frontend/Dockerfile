@@ -1,16 +1,19 @@
 # Build stage
-FROM node:18-alpine AS build
+FROM node:20-alpine AS build
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install all dependencies (including dev dependencies needed for build)
+RUN npm ci
 
 # Copy source code
 COPY . .
+
+# Use Docker-specific proxy configuration
+RUN cp proxy.docker.conf.json proxy.conf.json
 
 # Build the application
 RUN npm run build

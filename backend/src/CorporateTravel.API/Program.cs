@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Security.Claims;
 using Serilog;
+using Microsoft.EntityFrameworkCore;
 
 try
 {
@@ -15,10 +16,6 @@ try
         .ReadFrom.Configuration(context.Configuration)
         .ReadFrom.Services(services));
 
-    // Verifica se o parâmetro --seed ou -s foi passado
-    var seedDatabase = args.Contains("--seed") || args.Contains("-s");
-    Log.Information("Seed database flag: {SeedDatabase}", seedDatabase);
-
     // Add services to the container.
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
@@ -28,11 +25,15 @@ try
     {
         options.AddPolicy("AllowAngularApp", policy =>
         {
-            policy.WithOrigins("http://localhost:4200", "http://localhost:4201")
+            policy.WithOrigins(
+                    "http://localhost:4200", 
+                    "http://localhost:4201",
+                    "http://frontend:80",           // Frontend container
+                    "http://corporatetravel-frontend:80"  // Frontend container name
+                  )
                   .AllowAnyHeader()
                   .AllowAnyMethod()
-                  .AllowCredentials()
-                  .SetIsOriginAllowed(origin => true); // Para debug
+                  .AllowCredentials();
         });
     });
 
@@ -111,30 +112,22 @@ try
 
     var app = builder.Build();
 
-    if (seedDatabase)
-    {
-        using (var scope = app.Services.CreateScope())
-        {
-            var services = scope.ServiceProvider;
-            try
-            {
-                Log.Information("Running database seed...");
-                await CorporateTravel.Infrastructure.Data.DataSeeder.SeedRolesAndAdminAsync(services);
-                Log.Information("Database seed completed successfully.");
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Error running database seed.");
-            }
-        }
-    }
-
     // Pipeline normal da aplicação
     app.UseCors("AllowAngularApp");
     app.UseHttpsRedirection();
     
     // Add Serilog request logging middleware
     app.UseSerilogRequestLogging();
+    
+    // Ensure database is created and migrations are applied
+    using (var scope = app.Services.CreateScope())
+    {
+        var context = scope.ServiceProvider.GetRequiredService<CorporateTravel.Infrastructure.Data.ApplicationDbContext>();
+        context.Database.Migrate();
+        
+        // Seed initial data
+        await CorporateTravel.Infrastructure.Data.DataSeeder.SeedRolesAndAdminAsync(app.Services);
+    }
     
     app.UseAuthentication();
     app.UseAuthorization();
@@ -155,8 +148,3 @@ finally
     Log.CloseAndFlush();
 }
 
-// O record deve ficar fora do try/catch
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

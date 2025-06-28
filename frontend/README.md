@@ -1,6 +1,38 @@
-# Frontend
+# Frontend - Corporate Travel
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.0.3.
+
+## Desenvolvimento Local
+
+Para rodar o frontend localmente com proxy para o backend:
+
+```bash
+# Certifique-se de que o backend está rodando na porta 5178
+npm run start:proxy
+```
+
+O frontend estará disponível em `http://localhost:4200` e fará proxy das requisições `/api/*` para `http://localhost:5178`.
+
+## Docker
+
+Para rodar no Docker, use:
+
+```bash
+docker-compose up frontend
+```
+
+O Dockerfile automaticamente usa a configuração `proxy.docker.conf.json` que aponta para o backend container.
+
+## Configurações de Proxy
+
+- **Desenvolvimento Local**: `proxy.conf.json` → `http://localhost:5178`
+- **Docker**: `proxy.docker.conf.json` → `http://backend:8080`
+
+## Estrutura de Arquivos
+
+- `proxy.conf.json` - Configuração para desenvolvimento local
+- `proxy.docker.conf.json` - Configuração para Docker
+- `nginx.conf` - Configuração do nginx para produção no Docker
 
 ## Development server
 

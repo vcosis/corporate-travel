@@ -1,0 +1,15 @@
+{
+  "/api": {
+    "target": "http://backend:8080",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/notificationhub": {
+    "target": "http://backend:8080",
+    "secure": false,
+    "changeOrigin": true,
+    "ws": true,
+    "logLevel": "debug"
+  }
+} 

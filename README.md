@@ -9,7 +9,7 @@ Sistema completo de gerenciamento de viagens corporativas com backend .NET Core 
 - .NET 8 SDK (para desenvolvimento local)
 - Node.js 18+ (para desenvolvimento local)
 
-### Execução com Docker Compose
+### Opção 1: Execução com Docker Compose (Nginx Proxy)
 
 ```bash
 # Clone o repositório
@@ -24,12 +24,31 @@ Isso irá iniciar:
 - **PostgreSQL** (porta 5432) - Banco de dados
 - **Seq** (porta 5341) - Log aggregation e análise
 - **Backend API** (porta 5178) - API .NET Core
-- **Frontend com Nginx** (porta 80) - Aplicação Angular com proxy reverso
+- **Frontend com Nginx** (porta 4200) - Aplicação Angular com proxy reverso
+
+### Opção 2: Desenvolvimento Local (Angular CLI Proxy)
+
+```bash
+# Inicie apenas o backend e banco
+docker-compose up -d postgres backend seq
+
+# Em outro terminal, execute o frontend localmente
+cd frontend
+npm install
+npm run start:proxy
+```
 
 ### Acessos
 
-- **Frontend**: http://localhost
-- **Backend API**: http://localhost/api
+#### Com Docker Compose (Nginx):
+- **Frontend**: http://localhost:4200
+- **Backend API**: http://localhost:4200/api
+- **Seq Logs**: http://localhost:5341
+- **PostgreSQL**: localhost:5432
+
+#### Com Desenvolvimento Local (Angular CLI):
+- **Frontend**: http://localhost:4200
+- **Backend API**: http://localhost:4200/api (via proxy)
 - **Seq Logs**: http://localhost:5341
 - **PostgreSQL**: localhost:5432
 
@@ -52,6 +71,7 @@ corporate-travel/
 │   │   └── theme/         # Temas e estilos
 │   ├── Dockerfile         # Build do frontend
 │   ├── nginx.conf         # Configuração do proxy reverso
+│   ├── proxy.conf.json    # Configuração do proxy Angular CLI
 │   └── package.json
 ├── docker-compose.yml     # Orquestração dos serviços
 └── README.md
@@ -82,30 +102,45 @@ cd frontend
 # Instalar dependências
 npm install
 
-# Executar em modo desenvolvimento
-ng serve
+# Executar em modo desenvolvimento (com proxy)
+npm run start:proxy
 
 # Executar testes
 ng test
 ```
 
-## 🌐 Proxy Reverso
+## 🌐 Proxy Configuration
 
-O sistema inclui um proxy reverso Nginx que oferece:
+O sistema oferece duas opções de proxy:
 
-### Benefícios
-- **Unificação de portas**: Acesso através de uma única porta (80)
-- **Segurança**: Headers de segurança configurados
-- **Performance**: Compressão gzip e cache de assets estáticos
-- **Rate Limiting**: Proteção contra ataques de força bruta
-- **CORS**: Configuração automática de CORS
-- **WebSocket**: Suporte para SignalR
+### Opção 1: Nginx Proxy (Docker)
+- **Arquivo**: `frontend/nginx.conf`
+- **Uso**: `docker-compose up -d`
+- **Vantagens**: Produção-ready, rate limiting, cache, segurança
 
-### Configuração
-- **Nginx**: Configurado em `frontend/nginx.conf`
-- **Rate Limiting**: 10 req/s para API, 5 req/s para login
-- **Cache**: Assets estáticos com cache de 1 ano
-- **Compressão**: Gzip habilitado para melhor performance
+### Opção 2: Angular CLI Proxy (Desenvolvimento)
+- **Arquivo**: `frontend/proxy.conf.json`
+- **Uso**: `npm run start:proxy`
+- **Vantagens**: Simples, hot reload, debug fácil
+
+### Configuração do Proxy Angular CLI
+```json
+{
+  "/api": {
+    "target": "http://localhost:5178",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/notificationhub": {
+    "target": "http://localhost:5178",
+    "secure": false,
+    "changeOrigin": true,
+    "ws": true,
+    "logLevel": "debug"
+  }
+}
+```
 
 ## 👥 Usuários Padrão
 
@@ -162,7 +197,7 @@ Acesse http://localhost:5341 para:
 - CORS configurado
 - Validação de entrada
 - Logging de auditoria
-- Rate limiting
+- Rate limiting (Nginx)
 - Headers de segurança
 
 ## 📝 API Documentation
@@ -188,9 +223,19 @@ ng test
 
 ## 📦 Deploy
 
+### Com Docker Compose
 ```bash
 # Build e deploy com Docker
 docker-compose up -d
+```
+
+### Desenvolvimento Local
+```bash
+# Backend e banco
+docker-compose up -d postgres backend seq
+
+# Frontend local
+cd frontend && npm run start:proxy
 ```
 
 ## 🤝 Contribuição
