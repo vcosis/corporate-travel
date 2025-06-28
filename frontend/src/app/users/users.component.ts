@@ -25,6 +25,7 @@ import { BreadcrumbComponent, BreadcrumbItem } from '../shared/breadcrumb/breadc
 import { BreadcrumbService } from '../shared/breadcrumb/breadcrumb.service';
 import { ConfirmationDialogService } from '../shared/confirmation-dialog/confirmation-dialog.service';
 import { SelectionModel } from '@angular/cdk/collections';
+import { LoggingService } from '../core/logging.service';
 
 @Component({
   selector: 'app-users',
@@ -79,14 +80,15 @@ export class UsersComponent implements OnInit, AfterViewInit {
     private dialog: MatDialog,
     private authService: AuthService,
     private breadcrumbService: BreadcrumbService,
-    private confirmationDialogService: ConfirmationDialogService
+    private confirmationDialogService: ConfirmationDialogService,
+    private loggingService: LoggingService
   ) {}
 
   ngOnInit(): void {
-    console.log('UsersComponent initialized');
-    console.log('Current user:', this.authService.getCurrentUser());
-    console.log('Is authenticated:', this.authService.isAuthenticated());
-    console.log('Has Admin role:', this.authService.hasRole('Admin'));
+    this.loggingService.debug('UsersComponent initialized');
+    this.loggingService.debug('Current user:', this.authService.getCurrentUser());
+    this.loggingService.debug('Is authenticated:', this.authService.isAuthenticated());
+    this.loggingService.debug('Has Admin role:', this.authService.hasRole('Admin'));
     
     this.initializeBreadcrumb();
     this.setupFilters();
@@ -125,33 +127,30 @@ export class UsersComponent implements OnInit, AfterViewInit {
 
   loadUsers() {
     this.isLoading = true;
-    console.log('Loading users - Page:', this.pageIndex + 1, 'PageSize:', this.pageSize, 'Filter:', this.filterValue, 'Role:', this.roleFilterValue, 'Status:', this.statusFilterValue, 'Sort:', this.sortByValue);
+    this.loggingService.debug('Loading users - Page:', this.pageIndex + 1, 'PageSize:', this.pageSize, 'Filter:', this.filterValue, 'Role:', this.roleFilterValue, 'Status:', this.statusFilterValue, 'Sort:', this.sortByValue);
     
     this.userService.getUsers(this.pageIndex + 1, this.pageSize, this.filterValue, this.roleFilterValue, this.statusFilterValue, this.sortByValue)
       .subscribe({
         next: (result: PaginatedResult<User>) => {
-          console.log('Users loaded:', result);
+          this.loggingService.debug('Users loaded:', result);
           this.dataSource.data = result.items;
           this.totalCount = result.totalCount;
-          console.log('Total count set to:', this.totalCount);
+          this.loggingService.debug('Total count set to:', this.totalCount);
           this.isLoading = false;
         },
         error: (error) => {
-          console.error('Erro ao carregar usuários:', error);
-          this.snackBar.open('Erro ao carregar usuários', 'Fechar', {
-            duration: 3000
-          });
+          this.loggingService.error('Erro ao carregar usuários', error);
           this.isLoading = false;
         }
       });
   }
 
   onPageChange(event?: any) {
-    console.log('Page change event:', event);
+    this.loggingService.debug('Page change event:', event);
     if (event) {
       this.pageIndex = event.pageIndex;
       this.pageSize = event.pageSize;
-      console.log('New page index:', this.pageIndex, 'New page size:', this.pageSize);
+      this.loggingService.debug('New page index:', this.pageIndex, 'New page size:', this.pageSize);
     }
     this.loadUsers();
   }
@@ -259,10 +258,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
             this.loadUsers();
           })
           .catch(error => {
-            console.error('Erro ao excluir usuários:', error);
-            this.snackBar.open('Erro ao excluir usuários', 'Fechar', {
-              duration: 3000
-            });
+            this.loggingService.error('Erro ao excluir usuários', error);
           });
       }
     });
@@ -285,30 +281,32 @@ export class UsersComponent implements OnInit, AfterViewInit {
   }
 
   deleteUser(userId: string) {
-    console.log('=== deleteUser ===');
-    console.log('User ID to delete:', userId);
-    console.log('User ID type:', typeof userId);
-    console.log('User ID length:', userId.length);
-    
+    this.loggingService.debug('=== deleteUser ===');
+    this.loggingService.debug('User ID to delete:', userId);
+    this.loggingService.debug('User ID type:', typeof userId);
+    this.loggingService.debug('User ID length:', userId.length);
+
+    // Validar se o ID não está vazio
     if (!userId || userId.trim() === '') {
-      console.error('Invalid user ID provided');
       this.snackBar.open('ID do usuário inválido', 'Fechar', {
         duration: 3000
       });
       return;
     }
-    
+
+    // Encontrar o usuário na lista
     const user = this.dataSource.data.find(u => u.id === userId);
-    console.log('Found user:', user);
-    
+    this.loggingService.debug('Found user:', user);
+
     if (!user) {
-      console.log('User not found in data source');
+      this.loggingService.debug('User not found in data source');
       this.snackBar.open('Usuário não encontrado', 'Fechar', {
         duration: 3000
       });
       return;
     }
 
+    // Verificar se é um usuário administrador
     if (user.roles.includes('Admin')) {
       this.snackBar.open('Não é possível excluir um usuário administrador', 'Fechar', {
         duration: 3000
@@ -316,39 +314,42 @@ export class UsersComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    const message = `Tem certeza que deseja excluir o usuário "${user.name}"? Esta ação não pode ser desfeita.`;
+
     this.confirmationDialogService.confirm({
       title: 'Confirmar Exclusão',
-      message: `Tem certeza que deseja excluir o usuário "${user.name}"? Esta ação não pode ser desfeita.`,
+      message: message,
       confirmText: 'Excluir',
       cancelText: 'Cancelar',
       confirmColor: 'warn',
       type: 'error'
     }).subscribe(confirmed => {
       if (confirmed) {
-        console.log('Confirmation confirmed, calling deleteUser service with ID:', userId);
+        this.loggingService.debug('Confirmation confirmed, calling deleteUser service with ID:', userId);
+
         this.userService.deleteUser(userId).subscribe({
           next: () => {
-            console.log('User deleted successfully');
+            this.loggingService.debug('User deleted successfully');
             this.snackBar.open('Usuário excluído com sucesso!', 'Fechar', {
               duration: 3000
             });
             this.loadUsers();
           },
           error: (error) => {
-            console.error('Erro ao excluir usuário:', error);
-            console.error('Error status:', error.status);
-            console.error('Error message:', error.message);
-            console.error('Error error:', error.error);
-            
+            this.loggingService.error('Erro ao excluir usuário', error);
+            this.loggingService.debug('Error status:', error.status);
+            this.loggingService.debug('Error message:', error.message);
+            this.loggingService.debug('Error error:', error.error);
+
             let errorMessage = 'Erro ao excluir usuário';
-            if (error.error && Array.isArray(error.error)) {
-              errorMessage = error.error.map((e: any) => e.description || e.message).join(', ');
-            } else if (error.error && error.error.description) {
-              errorMessage = error.error.description;
+            if (error.error?.error) {
+              errorMessage = error.error.error;
+            } else if (error.error?.message) {
+              errorMessage = error.error.message;
             } else if (error.message) {
               errorMessage = error.message;
             }
-            
+
             this.snackBar.open(errorMessage, 'Fechar', {
               duration: 5000
             });

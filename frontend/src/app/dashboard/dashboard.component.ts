@@ -12,6 +12,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { BreadcrumbComponent, BreadcrumbItem } from '../shared/breadcrumb/breadcrumb.component';
 import { BreadcrumbService } from '../shared/breadcrumb/breadcrumb.service';
 import { ThemeService } from '../core/theme.service';
+import { LoggingService } from '../core/logging.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -96,7 +97,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private breadcrumbService: BreadcrumbService,
     private themeService: ThemeService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private loggingService: LoggingService
   ) {}
 
   ngOnInit(): void {
@@ -143,7 +145,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           this.loading = false;
         },
         error: (error) => {
-          console.error('Error loading dashboard stats:', error);
+          this.loggingService.error('Error loading dashboard stats:', error);
           this.error = true;
           this.loading = false;
           this.snackBar.open('Failed to load dashboard statistics', 'Close', { duration: 3000 });
@@ -157,7 +159,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           this.recentRequests = requests;
         },
         error: (error) => {
-          console.error('Error loading recent requests:', error);
+          this.loggingService.error('Error loading recent requests:', error);
           this.snackBar.open('Failed to load recent requests', 'Close', { duration: 3000 });
         }
       })
@@ -175,7 +177,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   private updatePieChart(): void {
     const isDarkMode = document.body.classList.contains('dark-mode');
-    console.log('updatePieChart - Dark mode:', isDarkMode);
+    this.loggingService.debug('updatePieChart - Dark mode:', isDarkMode);
 
     // Definir cores específicas para modo escuro
     const legendColor = isDarkMode ? '#ffffff' : '#212121';
@@ -183,7 +185,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const tooltipTextColor = isDarkMode ? '#ffffff' : '#212121';
     const borderColor = isDarkMode ? '#424242' : '#ffffff';
 
-    console.log('updatePieChart - Colors:', {
+    this.loggingService.debug('updatePieChart - Colors:', {
       legendColor,
       tooltipBg,
       tooltipTextColor,
@@ -237,7 +239,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       }
     };
 
-    console.log('updatePieChart - Updated chart options');
+    this.loggingService.debug('updatePieChart - Updated chart options');
   }
 
   getStatusClass(status: string): string {

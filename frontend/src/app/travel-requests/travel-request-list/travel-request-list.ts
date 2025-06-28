@@ -29,6 +29,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatChipsModule } from '@angular/material/chips';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { LoggingService } from '../../core/logging.service';
 
 @Component({
   selector: 'app-travel-request-list',
@@ -138,16 +139,17 @@ export class TravelRequestListComponent implements OnInit, AfterViewInit {
     private authService: AuthService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
-    private breadcrumbService: BreadcrumbService
+    private breadcrumbService: BreadcrumbService,
+    private loggingService: LoggingService
   ) {}
 
   ngOnInit(): void {
     this.isManager = this.authService.hasRole('Manager');
     this.isAdmin = this.authService.hasRole('Admin');
-    console.log('TravelRequestListComponent initialized');
-    console.log('Current user:', this.authService.getCurrentUser());
-    console.log('Is authenticated:', this.authService.isAuthenticated());
-    console.log('Has Manager role:', this.authService.hasRole('Manager'));
+    this.loggingService.debug('TravelRequestListComponent initialized');
+    this.loggingService.debug('Current user:', this.authService.getCurrentUser());
+    this.loggingService.debug('Is authenticated:', this.authService.isAuthenticated());
+    this.loggingService.debug('Has Manager role:', this.authService.hasRole('Manager'));
     
     this.initializeBreadcrumb();
     this.setDisplayedColumns();
@@ -221,18 +223,15 @@ export class TravelRequestListComponent implements OnInit, AfterViewInit {
       additionalFilters
     ).subscribe({
       next: (result) => {
-        console.log('Travel requests loaded:', result);
+        this.loggingService.debug('Travel requests loaded:', result);
         this.dataSource.data = result.items;
         this.totalCount = result.totalCount;
-        console.log('Total count set to:', this.totalCount);
+        this.loggingService.debug('Total count set to:', this.totalCount);
         this.separateRequests(result.items);
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Erro ao carregar solicitações de viagem:', error);
-        this.snackBar.open('Erro ao carregar solicitações de viagem', 'Fechar', {
-          duration: 3000
-        });
+        this.loggingService.error('Erro ao carregar solicitações de viagem', error);
         this.isLoading = false;
       }
     });
@@ -290,11 +289,11 @@ export class TravelRequestListComponent implements OnInit, AfterViewInit {
   }
 
   onPageChange(event?: any) {
-    console.log('Page change event:', event);
+    this.loggingService.debug('Page change event:', event);
     if (event) {
       this.pageIndex = event.pageIndex;
       this.pageSize = event.pageSize;
-      console.log('New page index:', this.pageIndex, 'New page size:', this.pageSize);
+      this.loggingService.debug('New page index:', this.pageIndex, 'New page size:', this.pageSize);
     }
     this.loadTravelRequests();
   }
@@ -356,26 +355,17 @@ export class TravelRequestListComponent implements OnInit, AfterViewInit {
   }
 
   delete(id: string): void {
-    const travelRequest = this.dataSource.data.find(tr => tr.id === id);
-    if (!travelRequest) return;
-
-    const confirmMessage = `Tem certeza que deseja deletar a solicitação "${travelRequest.origin} → ${travelRequest.destination}"?`;
-    if (confirm(confirmMessage)) {
-      this.travelRequestService.delete(id).subscribe({
-        next: () => {
-          this.snackBar.open('Solicitação de viagem deletada com sucesso!', 'Fechar', {
-            duration: 3000
-          });
-          this.loadTravelRequests(); // Recarregar a lista
-        },
-        error: (error) => {
-          console.error('Erro ao deletar solicitação de viagem:', error);
-          this.snackBar.open('Erro ao deletar solicitação de viagem', 'Fechar', {
-            duration: 3000
-          });
-        }
-      });
-    }
+    this.travelRequestService.delete(id).subscribe({
+      next: () => {
+        this.snackBar.open('Solicitação de viagem deletada com sucesso!', 'Fechar', {
+          duration: 3000
+        });
+        this.loadTravelRequests();
+      },
+      error: (error) => {
+        this.loggingService.error('Erro ao deletar solicitação de viagem', error);
+      }
+    });
   }
 
   canEdit(row: TravelRequest): boolean {

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { LoggingService } from '../core/logging.service';
 
 export interface TravelRequest {
   id: string;
@@ -48,7 +49,10 @@ export interface TravelRequestFilters {
 export class TravelRequestService {
   private apiUrl = environment.apiUrl + '/travelrequests';
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private loggingService: LoggingService
+  ) { }
 
   create(travelRequest: Partial<TravelRequest>): Observable<TravelRequest> {
     return this.http.post<TravelRequest>(this.apiUrl, travelRequest);
@@ -83,7 +87,7 @@ export class TravelRequestService {
   }
 
   getById(id: string): Observable<TravelRequest> {
-    console.log('TravelRequestService.getById called with id:', id);
+    this.loggingService.debug('TravelRequestService.getById called with id:', id);
     return this.http.get<TravelRequest>(`${this.apiUrl}/${id}`);
   }
 

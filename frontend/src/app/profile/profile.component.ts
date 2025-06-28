@@ -14,6 +14,7 @@ import { AuthService, User } from '../auth/auth.service';
 import { BreadcrumbComponent, BreadcrumbItem } from '../shared/breadcrumb/breadcrumb.component';
 import { BreadcrumbService } from '../shared/breadcrumb/breadcrumb.service';
 import { ProfileService } from './profile.service';
+import { LoggingService } from '../core/logging.service';
 
 @Component({
   selector: 'app-profile',
@@ -49,7 +50,8 @@ export class ProfileComponent implements OnInit {
     private profileService: ProfileService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
-    private breadcrumbService: BreadcrumbService
+    private breadcrumbService: BreadcrumbService,
+    private loggingService: LoggingService
   ) {}
 
   ngOnInit(): void {
@@ -88,7 +90,7 @@ export class ProfileComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Erro ao carregar perfil:', error);
+        this.loggingService.error('Erro ao carregar perfil:', error);
         this.snackBar.open('Erro ao carregar dados do perfil', 'Fechar', {
           duration: 3000
         });
@@ -156,7 +158,7 @@ export class ProfileComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Erro ao atualizar informações:', error);
+        this.loggingService.error('Erro ao atualizar informações:', error);
         this.snackBar.open('Erro ao atualizar informações', 'Fechar', {
           duration: 3000
         });
@@ -192,7 +194,7 @@ export class ProfileComponent implements OnInit {
         this.isPasswordLoading = false;
       },
       error: (error) => {
-        console.error('Erro ao alterar senha:', error);
+        this.loggingService.error('Erro ao alterar senha:', error);
         this.snackBar.open('Erro ao alterar senha', 'Fechar', {
           duration: 3000
         });

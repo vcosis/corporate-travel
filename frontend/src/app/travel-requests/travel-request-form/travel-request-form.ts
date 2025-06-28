@@ -12,6 +12,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
+import { LoggingService } from '../../core/logging.service';
 
 @Component({
   selector: 'app-travel-request-form',
@@ -44,7 +45,8 @@ export class TravelRequestFormComponent implements OnInit {
     private route: ActivatedRoute,
     private travelRequestService: TravelRequestService,
     private authService: AuthService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private loggingService: LoggingService
   ) { }
 
   ngOnInit(): void {
@@ -74,12 +76,12 @@ export class TravelRequestFormComponent implements OnInit {
   loadTravelRequest(): void {
     if (!this.travelRequestId) return;
 
-    console.log('Loading travel request with ID:', this.travelRequestId);
+    this.loggingService.debug('Loading travel request with ID:', this.travelRequestId);
 
     this.loading = true;
     this.travelRequestService.getById(this.travelRequestId).subscribe({
       next: (travelRequest) => {
-        console.log('Travel request loaded successfully:', travelRequest);
+        this.loggingService.debug('Travel request loaded successfully:', travelRequest);
         this.travelRequestForm.patchValue({
           origin: travelRequest.origin,
           destination: travelRequest.destination,
@@ -90,9 +92,7 @@ export class TravelRequestFormComponent implements OnInit {
         this.loading = false;
       },
       error: (err) => {
-        console.error('Error loading travel request:', err);
-        console.error('Error details:', err.error);
-        this.snackBar.open(`Error loading travel request: ${err.error?.error || err.message || 'Travel request not found'}`, 'Close', { duration: 5000 });
+        this.loggingService.error('Erro ao carregar requisição de viagem', err);
         this.router.navigate(['/travel-requests']);
         this.loading = false;
       }
@@ -112,7 +112,7 @@ export class TravelRequestFormComponent implements OnInit {
             this.loading = false;
           },
           error: (err) => {
-            this.snackBar.open('Error updating travel request', 'Close', { duration: 3000 });
+            this.loggingService.error('Erro ao atualizar requisição de viagem', err);
             this.loading = false;
           }
         });
@@ -125,7 +125,7 @@ export class TravelRequestFormComponent implements OnInit {
             this.loading = false;
           },
           error: (err) => {
-            this.snackBar.open('Error creating travel request', 'Close', { duration: 3000 });
+            this.loggingService.error('Erro ao criar requisição de viagem', err);
             this.loading = false;
           }
         });

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { LoggingService } from '../core/logging.service';
 
 export interface User {
   id: string;
@@ -41,7 +42,10 @@ export interface RegisterUserRequest {
 export class UserService {
   private apiUrl = `${environment.apiUrl}/users`;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private loggingService: LoggingService
+  ) {}
 
   getUsers(page: number = 1, pageSize: number = 10, searchTerm?: string, roleFilter?: string, statusFilter?: string, sortBy?: string): Observable<PaginatedResult<User>> {
     let params = new HttpParams()
@@ -65,7 +69,7 @@ export class UserService {
     }
 
     const url = this.apiUrl;
-    console.log('Making request to:', url, 'with params:', params.toString());
+    this.loggingService.debug('Making request to:', url, 'with params:', params.toString());
     
     return this.http.get<PaginatedResult<User>>(this.apiUrl, { params });
   }
@@ -79,14 +83,14 @@ export class UserService {
   }
 
   deleteUser(userId: string): Observable<any> {
-    console.log('=== deleteUser service ===');
-    console.log('User ID:', userId);
-    console.log('User ID type:', typeof userId);
-    console.log('User ID length:', userId.length);
-    console.log('Full URL:', `${this.apiUrl}/${userId}`);
+    this.loggingService.debug('=== deleteUser service ===');
+    this.loggingService.debug('User ID:', userId);
+    this.loggingService.debug('User ID type:', typeof userId);
+    this.loggingService.debug('User ID length:', userId.length);
+    this.loggingService.debug('Full URL:', `${this.apiUrl}/${userId}`);
     
     if (!userId || userId.trim() === '') {
-      console.error('Invalid user ID provided');
+      this.loggingService.error('Invalid user ID provided');
       throw new Error('ID do usuário é obrigatório');
     }
     
