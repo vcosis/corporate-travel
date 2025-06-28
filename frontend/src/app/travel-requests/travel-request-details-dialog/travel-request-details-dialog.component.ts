@@ -9,6 +9,7 @@ import { MatCardModule, MatCardHeader, MatCardTitle, MatCardContent } from '@ang
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { TravelRequestService, TravelRequest } from '../travel-request.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'app-travel-request-details-dialog',
@@ -32,7 +33,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 })
 export class TravelRequestDetailsDialogComponent {
   travelRequest: TravelRequest;
-  canApprove = true; // Troque por lógica real de permissão
+  canApprove = false;
   loading = false;
   loadingApprove = false;
   loadingReject = false;
@@ -41,9 +42,16 @@ export class TravelRequestDetailsDialogComponent {
     public dialogRef: MatDialogRef<TravelRequestDetailsDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { travelRequest: TravelRequest },
     private travelRequestService: TravelRequestService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private authService: AuthService
   ) {
     this.travelRequest = data.travelRequest;
+    this.checkPermissions();
+  }
+
+  private checkPermissions(): void {
+    // Apenas Admin e Manager podem aprovar/rejeitar
+    this.canApprove = this.authService.hasRole('Admin') || this.authService.hasRole('Manager');
   }
 
   getStatusDescription(status: any): string {

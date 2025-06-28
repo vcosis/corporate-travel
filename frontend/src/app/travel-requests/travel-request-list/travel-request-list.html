@@ -3,105 +3,358 @@
   
   <div class="travel-requests-header">
     <div class="title-section">
-      <h2>Gerenciamento de Solicitações de Viagem</h2>
-      <p class="subtitle">Administre solicitações, aprovações e status de viagens corporativas</p>
+      <h2>Solicitações de Viagem</h2>
+      <p class="subtitle">Gerencie e acompanhe as solicitações de viagem da empresa</p>
     </div>
-    <button matButton="filled" (click)="createTravelRequest()">
-      <mat-icon>add</mat-icon>
-      Nova Solicitação
-    </button>
   </div>
 
-  <div class="filter-section">
-    <mat-form-field appearance="outline" class="search-field small-size">
-      <mat-label>Buscar solicitações</mat-label>
-      <input matInput [formControl]="filterControl">
-      <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
-  </div>
-
-  <div class="table-container">
-    <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
-    
-    <table mat-table [dataSource]="dataSource" matSort class="travel-requests-table">
-      <!-- Request Code Column -->
-      <ng-container matColumnDef="requestCode">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Solicitação # </th>
-        <td mat-cell *matCellDef="let row"> 
-          <a 
-            href="javascript:void(0)"
-            class="request-code-link"
-            (click)="openDetailsDialog(row)"
-            [matTooltip]="'Ver detalhes da solicitação ' + row.requestCode">
-            {{row.requestCode || '-'}}
-          </a>
-        </td>
-      </ng-container>
-
-      <!-- Solicitante Column -->
-      <ng-container matColumnDef="requestingUserName">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Solicitante </th>
-        <td mat-cell *matCellDef="let row"> {{row.requestingUserName || '-'}} </td>
-      </ng-container>
-
-      <!-- Origin Column -->
-      <ng-container matColumnDef="origin">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Origem </th>
-        <td mat-cell *matCellDef="let row"> {{row.origin}} </td>
-      </ng-container>
-
-      <!-- Destination Column -->
-      <ng-container matColumnDef="destination">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Destino </th>
-        <td mat-cell *matCellDef="let row"> {{row.destination}} </td>
-      </ng-container>
-
-      <!-- Start Date Column -->
-      <ng-container matColumnDef="startDate">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Data de Início </th>
-        <td mat-cell *matCellDef="let row"> {{row.startDate | date:'dd/MM/yyyy'}} </td>
-      </ng-container>
-
-      <!-- Status Column -->
-      <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Status </th>
-        <td mat-cell *matCellDef="let row"> {{ getStatusDescription(row.status) }} </td>
-      </ng-container>
-
-      <!-- Actions Column -->
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef> Ações </th>
-        <td mat-cell *matCellDef="let row">
-          <button mat-icon-button matTooltip="Editar" (click)="editTravelRequest(row)" *ngIf="row.id && canEdit(row)">
-            <mat-icon [style.color]="'#1976d2'">edit</mat-icon>
-          </button>
-          <button 
-            mat-icon-button 
-            matTooltip="Excluir" 
-            (click)="delete(row.id)"
-            *ngIf="canDeleteTest(row) && row.id">
-            <mat-icon [style.color]="'#d32f2f'">delete</mat-icon>
-          </button>
-          <ng-container *ngIf="isManager && (row.status === 0 || row.status === 'pending' || row.status === 'Pending')">
-            <button mat-icon-button matTooltip="Aprovar" (click)="approve(row.id)" *ngIf="row.id">
-              <mat-icon [style.color]="'#388e3c'">check_circle</mat-icon>
+  <div class="travel-requests-content">
+    <mat-tab-group [(selectedIndex)]="selectedTabIndex" animationDuration="300ms" (selectedIndexChange)="onTabChange($event)">
+      <!-- Aba: Pendentes -->
+      <mat-tab label="Pendentes">
+        <div class="tab-content">
+          <!-- Toolbar Pendentes -->
+          <div class="toolbar left">
+            <button mat-button (click)="createTravelRequest()">
+              <mat-icon>add</mat-icon>
+              Nova Solicitação
             </button>
-            <button mat-icon-button matTooltip="Rejeitar" (click)="reject(row.id)" *ngIf="row.id">
-              <mat-icon [style.color]="'#fbc02d'">cancel</mat-icon>
+            <button mat-button (click)="loadTravelRequests()" [disabled]="isLoading">
+              <mat-icon>refresh</mat-icon>
+              Atualizar
             </button>
-          </ng-container>
-        </td>
-      </ng-container>
+            <button mat-button [disabled]="!hasPendingSelection" *ngIf="isAdmin || isManager" (click)="batchApprove()">
+              <mat-icon>done_all</mat-icon>
+              Aprovar
+            </button>
+            <button mat-button [disabled]="!hasPendingSelection" *ngIf="isAdmin || isManager" (click)="batchReject()">
+              <mat-icon>block</mat-icon>
+              Rejeitar
+            </button>
+            <button mat-button [disabled]="!hasPendingSelection" *ngIf="isAdmin" (click)="batchDelete()">
+              <mat-icon>delete</mat-icon>
+              Excluir
+            </button>
+          </div>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-    </table>
+          <!-- Filtros específicos para pendentes -->
+          <div class="advanced-filters" [formGroup]="pendingFilters">
+            <div class="filter-row">
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Período</mat-label>
+                <mat-select formControlName="period">
+                  <mat-option *ngFor="let option of periodOptions" [value]="option.value">
+                    {{ option.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline" class="filter-field" *ngIf="isAdmin || isManager">
+                <mat-label>Solicitante</mat-label>
+                <input matInput formControlName="requestingUser" placeholder="Filtrar por solicitante">
+                <mat-icon matSuffix>person</mat-icon>
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Ordenar por</mat-label>
+                <mat-select formControlName="sortBy">
+                  <mat-option *ngFor="let option of sortOptions" [value]="option.value">
+                    {{ option.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Ordem</mat-label>
+                <mat-select formControlName="sortOrder">
+                  <mat-option *ngFor="let option of sortOrderOptions" [value]="option.value">
+                    {{ option.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+          
+          <div *ngIf="isLoading" class="loading-container">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Carregando solicitações...</p>
+          </div>
 
-    <mat-paginator 
-      [length]="totalCount" 
-      [pageSize]="pageSize" 
-      [pageSizeOptions]="[5, 10, 25, 100]"
-      (page)="onPageChange($event)">
-    </mat-paginator>
+          <div *ngIf="!isLoading && pendingRequests.length === 0" class="empty-state">
+            <mat-icon>pending_actions</mat-icon>
+            <h3>Nenhuma solicitação aguardando aprovação</h3>
+            <p>Não há solicitações pendentes de aprovação no momento.</p>
+          </div>
+
+          <div *ngIf="!isLoading && pendingRequests.length > 0" class="requests-table-container">
+            <mat-table [dataSource]="pendingDataSource" matSort class="requests-table">
+              <!-- Checkbox Select Column -->
+              <ng-container matColumnDef="select">
+                <mat-header-cell *matHeaderCellDef>
+                  <mat-checkbox
+                    (change)="toggleAllPendingRows()"
+                    [checked]="isAllPendingSelected()"
+                    [indeterminate]="selection.hasValue() && !isAllPendingSelected()">
+                  </mat-checkbox>
+                </mat-header-cell>
+                <mat-cell *matCellDef="let row">
+                  <mat-checkbox
+                    (click)="$event.stopPropagation()"
+                    (change)="togglePendingRow(row)"
+                    [checked]="selection.isSelected(row)">
+                  </mat-checkbox>
+                </mat-cell>
+              </ng-container>
+
+              <!-- Request Code Column -->
+              <ng-container matColumnDef="requestCode">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Solicitação # </mat-header-cell>
+                <mat-cell *matCellDef="let row"> 
+                  <a 
+                    href="javascript:void(0)"
+                    class="request-code-link"
+                    (click)="openDetailsDialog(row)"
+                    [matTooltip]="'Ver detalhes da solicitação ' + row.requestCode">
+                    {{row.requestCode || '-'}}
+                  </a>
+                </mat-cell>
+              </ng-container>
+
+              <!-- Solicitante Column -->
+              <ng-container matColumnDef="requestingUserName">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Solicitante </mat-header-cell>
+                <mat-cell *matCellDef="let row"> {{row.requestingUserName || '-'}} </mat-cell>
+              </ng-container>
+
+              <!-- Origin Column -->
+              <ng-container matColumnDef="origin">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Origem </mat-header-cell>
+                <mat-cell *matCellDef="let row"> {{row.origin}} </mat-cell>
+              </ng-container>
+
+              <!-- Destination Column -->
+              <ng-container matColumnDef="destination">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Destino </mat-header-cell>
+                <mat-cell *matCellDef="let row"> {{row.destination}} </mat-cell>
+              </ng-container>
+
+              <!-- Start Date Column -->
+              <ng-container matColumnDef="startDate">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Data de Início </mat-header-cell>
+                <mat-cell *matCellDef="let row"> {{row.startDate | date:'dd/MM/yyyy'}} </mat-cell>
+              </ng-container>
+
+              <!-- Status Column -->
+              <ng-container matColumnDef="status">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Status </mat-header-cell>
+                <mat-cell *matCellDef="let row">
+                  <span class="status-badge status-pending">{{ getStatusDescription(row.status) }}</span>
+                </mat-cell>
+              </ng-container>
+
+              <!-- Actions Column -->
+              <ng-container matColumnDef="actions">
+                <mat-header-cell *matHeaderCellDef> Ações </mat-header-cell>
+                <mat-cell *matCellDef="let row">
+                  <button 
+                    mat-icon-button 
+                    [matTooltip]="getEditTooltip(row)"
+                    (click)="editTravelRequest(row)" 
+                    [disabled]="!canEdit(row)"
+                    *ngIf="isAdmin && row.id">
+                    <mat-icon [style.color]="canEdit(row) ? '#1976d2' : '#ccc'">edit</mat-icon>
+                  </button>
+                  <button 
+                    mat-icon-button 
+                    [matTooltip]="getDeleteTooltip(row)"
+                    (click)="delete(row.id)"
+                    [disabled]="!canDelete(row)"
+                    *ngIf="isAdmin && row.id">
+                    <mat-icon [style.color]="canDelete(row) ? '#d32f2f' : '#ccc'">delete</mat-icon>
+                  </button>
+                </mat-cell>
+              </ng-container>
+
+              <mat-header-row *matHeaderRowDef="pendingTableColumns"></mat-header-row>
+              <mat-row *matRowDef="let row; columns: pendingTableColumns;" 
+                      class="clickable-row"></mat-row>
+            </mat-table>
+
+            <mat-paginator [pageSizeOptions]="[5, 10, 25, 50]" 
+                          showFirstLastButtons 
+                          aria-label="Selecione a página de solicitações de viagem">
+            </mat-paginator>
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Aba: Histórico -->
+      <mat-tab label="Histórico">
+        <div class="tab-content">
+          <!-- Toolbar Histórico -->
+          <div class="toolbar left">
+            <button mat-button (click)="loadTravelRequests()" [disabled]="isLoading">
+              <mat-icon>refresh</mat-icon>
+              Atualizar
+            </button>
+            <button mat-button (click)="exportHistory()">
+              <mat-icon>download</mat-icon>
+              Exportar histórico
+            </button>
+          </div>
+
+          <!-- Filtros específicos para histórico -->
+          <div class="advanced-filters" [formGroup]="historyFilters">
+            <div class="filter-row">
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Status</mat-label>
+                <mat-select formControlName="status">
+                  <mat-option *ngFor="let option of statusOptions" [value]="option.value">
+                    {{ option.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Período</mat-label>
+                <mat-select formControlName="period">
+                  <mat-option *ngFor="let option of periodOptions" [value]="option.value">
+                    {{ option.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline" class="filter-field" *ngIf="isAdmin || isManager">
+                <mat-label>Solicitante</mat-label>
+                <input matInput formControlName="requestingUser" placeholder="Filtrar por solicitante">
+                <mat-icon matSuffix>person</mat-icon>
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline" class="filter-field" *ngIf="isAdmin || isManager">
+                <mat-label>Aprovador</mat-label>
+                <input matInput formControlName="approver" placeholder="Filtrar por aprovador">
+                <mat-icon matSuffix>verified_user</mat-icon>
+              </mat-form-field>
+            </div>
+            
+            <div class="filter-row">
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Ordenar por</mat-label>
+                <mat-select formControlName="sortBy">
+                  <mat-option *ngFor="let option of historySortOptions" [value]="option.value">
+                    {{ option.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline" class="filter-field">
+                <mat-label>Ordem</mat-label>
+                <mat-select formControlName="sortOrder">
+                  <mat-option *ngFor="let option of sortOrderOptions" [value]="option.value">
+                    {{ option.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+          
+          <div *ngIf="isLoading" class="loading-container">
+            <mat-spinner diameter="40"></mat-spinner>
+            <p>Carregando histórico...</p>
+          </div>
+
+          <div *ngIf="!isLoading && historyRequests.length === 0" class="empty-state">
+            <mat-icon>history</mat-icon>
+            <h3>Nenhuma solicitação no histórico</h3>
+            <p>Não há solicitações processadas no histórico.</p>
+          </div>
+
+          <div *ngIf="!isLoading && historyRequests.length > 0" class="requests-table-container">
+            <mat-table [dataSource]="historyDataSource" matSort class="requests-table">
+              <!-- Request Code Column -->
+              <ng-container matColumnDef="requestCode">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Solicitação # </mat-header-cell>
+                <mat-cell *matCellDef="let row"> 
+                  <a 
+                    href="javascript:void(0)"
+                    class="request-code-link"
+                    (click)="openDetailsDialog(row)"
+                    [matTooltip]="'Ver detalhes da solicitação ' + row.requestCode">
+                    {{row.requestCode || '-'}}
+                  </a>
+                </mat-cell>
+              </ng-container>
+
+              <!-- Solicitante Column -->
+              <ng-container matColumnDef="requestingUserName">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Solicitante </mat-header-cell>
+                <mat-cell *matCellDef="let row"> {{row.requestingUserName || '-'}} </mat-cell>
+              </ng-container>
+
+              <!-- Origin Column -->
+              <ng-container matColumnDef="origin">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Origem </mat-header-cell>
+                <mat-cell *matCellDef="let row"> {{row.origin}} </mat-cell>
+              </ng-container>
+
+              <!-- Destination Column -->
+              <ng-container matColumnDef="destination">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Destino </mat-header-cell>
+                <mat-cell *matCellDef="let row"> {{row.destination}} </mat-cell>
+              </ng-container>
+
+              <!-- Start Date Column -->
+              <ng-container matColumnDef="startDate">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Data de Início </mat-header-cell>
+                <mat-cell *matCellDef="let row"> {{row.startDate | date:'dd/MM/yyyy'}} </mat-cell>
+              </ng-container>
+
+              <!-- Status Column -->
+              <ng-container matColumnDef="status">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Status </mat-header-cell>
+                <mat-cell *matCellDef="let row">
+                  <span class="status-badge" 
+                        [ngClass]="getStatusClass(row.status)">
+                    {{ getStatusDescription(row.status) }}
+                  </span>
+                </mat-cell>
+              </ng-container>
+
+              <!-- Actions Column -->
+              <ng-container matColumnDef="actions">
+                <mat-header-cell *matHeaderCellDef> Ações </mat-header-cell>
+                <mat-cell *matCellDef="let row">
+                  <button 
+                    mat-icon-button 
+                    [matTooltip]="getEditTooltip(row)"
+                    (click)="editTravelRequest(row)" 
+                    [disabled]="!canEdit(row)"
+                    *ngIf="isAdmin && row.id">
+                    <mat-icon [style.color]="canEdit(row) ? '#1976d2' : '#ccc'">edit</mat-icon>
+                  </button>
+                  <button 
+                    mat-icon-button 
+                    [matTooltip]="getDeleteTooltip(row)"
+                    (click)="delete(row.id)"
+                    [disabled]="!canDelete(row)"
+                    *ngIf="isAdmin && row.id">
+                    <mat-icon [style.color]="canDelete(row) ? '#d32f2f' : '#ccc'">delete</mat-icon>
+                  </button>
+                </mat-cell>
+              </ng-container>
+
+              <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+              <mat-row *matRowDef="let row; columns: displayedColumns;" 
+                      class="clickable-row"></mat-row>
+            </mat-table>
+
+            <mat-paginator [pageSizeOptions]="[5, 10, 25, 50]" 
+                          showFirstLastButtons 
+                          aria-label="Selecione a página de solicitações de viagem">
+            </mat-paginator>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
   </div>
 </div>

@@ -6,70 +6,162 @@
       <h2>Gerenciamento de Usuários</h2>
       <p class="subtitle">Administre perfis, permissões e acessos do sistema</p>
     </div>
-    <button matButton="filled" (click)="createUser()">
-      <mat-icon>person_add</mat-icon>
-      Novo Usuário
-    </button>
   </div>
 
-  <div class="filter-section">
-    <mat-form-field appearance="outline" class="search-field small-size">
-      <mat-label>Digite nome ou email...</mat-label>
-      <input matInput [formControl]="filterControl">
-      <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
-  </div>
+  <div class="users-content">
+    <!-- Toolbar -->
+    <div class="toolbar left">
+      <button mat-button (click)="createUser()">
+        <mat-icon>person_add</mat-icon>
+        Novo Usuário
+      </button>
+      <button mat-button (click)="loadUsers()" [disabled]="isLoading">
+        <mat-icon>refresh</mat-icon>
+        Atualizar
+      </button>
+      <button mat-button [disabled]="!selectedUsers.length" (click)="deleteSelectedUsers()">
+        <mat-icon>delete</mat-icon>
+        Excluir
+      </button>
+      <button mat-button class="clear-filters-btn" (click)="clearFilters()" [disabled]="!hasActiveFilters()">
+        <mat-icon>clear_all</mat-icon>
+        Limpar Filtros
+      </button>
+    </div>
 
-  <div class="table-container">
-    <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
-    
-    <table mat-table [dataSource]="dataSource" matSort class="users-table">
-      <!-- Nome Column -->
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Nome </th>
-        <td mat-cell *matCellDef="let row"> {{ row.name }} </td>
-      </ng-container>
+    <!-- Filtros avançados -->
+    <div class="advanced-filters">
+      <div class="filter-row">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Buscar usuário</mat-label>
+          <input matInput [formControl]="filterControl" placeholder="Nome ou email">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
 
-      <!-- Email Column -->
-      <ng-container matColumnDef="email">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Email </th>
-        <td mat-cell *matCellDef="let row"> {{ row.email }} </td>
-      </ng-container>
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Perfil</mat-label>
+          <mat-select [formControl]="roleFilterControl">
+            <mat-option value="">Todos os perfis</mat-option>
+            <mat-option value="Admin">Administrador</mat-option>
+            <mat-option value="Manager">Gerente</mat-option>
+            <mat-option value="Employee">Funcionário</mat-option>
+          </mat-select>
+        </mat-form-field>
 
-      <!-- Roles Column -->
-      <ng-container matColumnDef="roles">
-        <th mat-header-cell *matHeaderCellDef> Perfis </th>
-        <td mat-cell *matCellDef="let row"> {{ getRolesDisplay(row.roles) }} </td>
-      </ng-container>
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Status</mat-label>
+          <mat-select [formControl]="statusFilterControl">
+            <mat-option value="">Todos os status</mat-option>
+            <mat-option value="active">Ativo</mat-option>
+            <mat-option value="inactive">Inativo</mat-option>
+          </mat-select>
+        </mat-form-field>
 
-      <!-- Created At Column -->
-      <ng-container matColumnDef="createdAt">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Data de Criação </th>
-        <td mat-cell *matCellDef="let row"> {{ getFormattedDate(row.createdAt) }} </td>
-      </ng-container>
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Ordenar por</mat-label>
+          <mat-select [formControl]="sortByControl">
+            <mat-option value="name">Nome</mat-option>
+            <mat-option value="email">Email</mat-option>
+            <mat-option value="createdAt">Data de Criação</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
 
-      <!-- Actions Column -->
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef> Ações </th>
-        <td mat-cell *matCellDef="let row">
-          <button mat-icon-button matTooltip="Editar" (click)="editUser(row)">
-            <mat-icon [style.color]="'#1976d2'">edit</mat-icon>
-          </button>
-          <button mat-icon-button matTooltip="Excluir" (click)="deleteUser(row.id)">
-            <mat-icon [style.color]="'#d32f2f'">delete</mat-icon>
-          </button>
-        </td>
-      </ng-container>
+    <!-- Estado de carregamento -->
+    <div *ngIf="isLoading" class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Carregando usuários...</p>
+    </div>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-    </table>
+    <!-- Estado vazio -->
+    <div *ngIf="!isLoading && dataSource.data.length === 0" class="empty-state">
+      <mat-icon>people</mat-icon>
+      <h3>Nenhum usuário encontrado</h3>
+      <p>Não há usuários que correspondam aos filtros aplicados.</p>
+    </div>
 
-    <mat-paginator 
-      [length]="totalCount" 
-      [pageSize]="pageSize" 
-      [pageSizeOptions]="[5, 10, 25, 100]"
-      (page)="onPageChange($event)">
-    </mat-paginator>
+    <!-- Tabela de usuários -->
+    <div *ngIf="!isLoading && dataSource.data.length > 0" class="users-table-container">
+      <mat-table [dataSource]="dataSource" matSort class="users-table">
+        <!-- Checkbox Column -->
+        <ng-container matColumnDef="select">
+          <mat-header-cell *matHeaderCellDef>
+            <mat-checkbox (change)="$event ? masterToggle() : null"
+                          [checked]="selection.hasValue() && isAllSelected()"
+                          [indeterminate]="selection.hasValue() && !isAllSelected()">
+            </mat-checkbox>
+          </mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            <mat-checkbox (click)="$event.stopPropagation()"
+                          (change)="$event ? selection.toggle(row) : null"
+                          [checked]="selection.isSelected(row)">
+            </mat-checkbox>
+          </mat-cell>
+        </ng-container>
+
+        <!-- Nome Column -->
+        <ng-container matColumnDef="name">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> Nome </mat-header-cell>
+          <mat-cell *matCellDef="let row"> {{ row.name }} </mat-cell>
+        </ng-container>
+
+        <!-- Email Column -->
+        <ng-container matColumnDef="email">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> Email </mat-header-cell>
+          <mat-cell *matCellDef="let row"> {{ row.email }} </mat-cell>
+        </ng-container>
+
+        <!-- Roles Column -->
+        <ng-container matColumnDef="roles">
+          <mat-header-cell *matHeaderCellDef> Perfis </mat-header-cell>
+          <mat-cell *matCellDef="let row"> 
+            {{ getRolesDisplay(row.roles) }}
+          </mat-cell>
+        </ng-container>
+
+        <!-- Status Column -->
+        <ng-container matColumnDef="status">
+          <mat-header-cell *matHeaderCellDef> Status </mat-header-cell>
+          <mat-cell *matCellDef="let row"> 
+            {{ getStatusDisplay(row) }}
+          </mat-cell>
+        </ng-container>
+
+        <!-- Created At Column -->
+        <ng-container matColumnDef="createdAt">
+          <mat-header-cell *matHeaderCellDef mat-sort-header> Data de Criação </mat-header-cell>
+          <mat-cell *matCellDef="let row"> {{ getFormattedDate(row.createdAt) }} </mat-cell>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <mat-header-cell *matHeaderCellDef> Ações </mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            <button mat-icon-button matTooltip="Editar" (click)="editUser(row)">
+              <mat-icon [style.color]="'#1976d2'">edit</mat-icon>
+            </button>
+            <button mat-icon-button matTooltip="Excluir" (click)="deleteUser(row.id)" [disabled]="row.roles.includes('Admin')">
+              <mat-icon [style.color]="row.roles.includes('Admin') ? '#ccc' : '#d32f2f'">delete</mat-icon>
+            </button>
+          </mat-cell>
+        </ng-container>
+
+        <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: displayedColumns;" 
+                class="clickable-row"
+                [class.selected-row]="selection.isSelected(row)"
+                (click)="selection.toggle(row)">
+        </mat-row>
+      </mat-table>
+
+      <mat-paginator 
+        [length]="totalCount" 
+        [pageSize]="pageSize" 
+        [pageSizeOptions]="[5, 10, 25, 100]"
+        showFirstLastButtons
+        (page)="onPageChange($event)">
+      </mat-paginator>
+    </div>
   </div>
 </div> 

@@ -186,6 +186,30 @@ body.dark-mode .chart-card {
   justify-content: center;
 }
 
+// Estilos específicos para o gráfico no modo escuro
+body.dark-mode .chart-container {
+  canvas {
+    filter: brightness(1.1);
+  }
+}
+
+// Estilos para os elementos do Chart.js no modo escuro
+body.dark-mode ::ng-deep .chart-container {
+  .chartjs-tooltip {
+    background-color: var(--surface-color) !important;
+    border: 1px solid var(--divider-color) !important;
+    color: var(--text-primary) !important;
+  }
+  
+  .chartjs-legend {
+    color: var(--text-primary) !important;
+  }
+  
+  .chartjs-legend-item {
+    color: var(--text-primary) !important;
+  }
+}
+
 .recent-activity {
   max-height: 300px;
   overflow-y: auto;

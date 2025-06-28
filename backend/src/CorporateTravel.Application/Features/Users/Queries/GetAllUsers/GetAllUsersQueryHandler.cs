@@ -31,6 +31,54 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, Paginat
                 u.Email!.ToLower().Contains(searchTerm));
         }
 
+        // Aplicar filtro por perfil se fornecido
+        if (!string.IsNullOrWhiteSpace(request.RoleFilter))
+        {
+            // Filtrar usuários que têm o perfil especificado
+            var usersWithRole = await _userManager.GetUsersInRoleAsync(request.RoleFilter);
+            var userIdsWithRole = usersWithRole.Select(u => u.Id).ToList();
+            query = query.Where(u => userIdsWithRole.Contains(u.Id));
+        }
+
+        // Aplicar filtro por status se fornecido
+        if (!string.IsNullOrWhiteSpace(request.StatusFilter))
+        {
+            // Por enquanto, vamos considerar todos os usuários como ativos
+            // Você pode implementar lógica específica baseada em suas necessidades
+            // Por exemplo, baseado em uma propriedade IsActive ou similar
+            if (request.StatusFilter.ToLower() == "inactive")
+            {
+                // Se você tiver uma propriedade IsActive, use: query = query.Where(u => !u.IsActive);
+                // Por enquanto, vamos retornar lista vazia para inativo
+                query = query.Where(u => false);
+            }
+        }
+
+        // Aplicar ordenação se fornecida
+        if (!string.IsNullOrWhiteSpace(request.SortBy))
+        {
+            switch (request.SortBy.ToLower())
+            {
+                case "name":
+                    query = query.OrderBy(u => u.Name);
+                    break;
+                case "email":
+                    query = query.OrderBy(u => u.Email);
+                    break;
+                case "createdat":
+                    query = query.OrderByDescending(u => u.CreatedAt);
+                    break;
+                default:
+                    query = query.OrderBy(u => u.Name);
+                    break;
+            }
+        }
+        else
+        {
+            // Ordenação padrão por nome
+            query = query.OrderBy(u => u.Name);
+        }
+
         // Obter contagem total antes da paginação
         var totalCount = await query.CountAsync(cancellationToken);
 

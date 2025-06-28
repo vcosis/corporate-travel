@@ -28,17 +28,16 @@ export class ConfirmationDialogService {
 
   confirmDelete(itemName: string = 'item', itemDetails?: string): Observable<boolean> {
     const message = itemDetails 
-      ? `Are you sure you want to delete "${itemDetails}"? This action cannot be undone.`
-      : `Are you sure you want to delete this ${itemName}? This action cannot be undone.`;
+      ? `Tem certeza que deseja excluir "${itemDetails}"? Esta ação não pode ser desfeita.`
+      : `Tem certeza que deseja excluir este ${itemName}? Esta ação não pode ser desfeita.`;
 
     return this.confirm({
-      title: 'Confirm Deletion',
+      title: 'Confirmar Exclusão',
       message: message,
-      confirmText: 'Delete',
-      cancelText: 'Cancel',
+      confirmText: 'Excluir',
+      cancelText: 'Cancelar',
       confirmColor: 'warn',
-      type: 'error',
-      icon: 'delete_forever'
+      type: 'error'
     });
   }
 
@@ -46,8 +45,8 @@ export class ConfirmationDialogService {
     return this.confirm({
       title: title,
       message: message,
-      confirmText: confirmText || 'Continue',
-      cancelText: 'Cancel',
+      confirmText: confirmText || 'Continuar',
+      cancelText: 'Cancelar',
       confirmColor: 'warn',
       type: 'warning'
     });
@@ -58,7 +57,7 @@ export class ConfirmationDialogService {
       title: title,
       message: message,
       confirmText: confirmText || 'OK',
-      cancelText: 'Cancel',
+      cancelText: 'Cancelar',
       confirmColor: 'primary',
       type: 'info'
     });
@@ -69,7 +68,7 @@ export class ConfirmationDialogService {
       title: title,
       message: message,
       confirmText: confirmText || 'OK',
-      cancelText: 'Cancel',
+      cancelText: 'Cancelar',
       confirmColor: 'primary',
       type: 'success'
     });

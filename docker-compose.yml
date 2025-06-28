@@ -1,25 +1,25 @@
 version: '3.8'
 
 services:
-  # SQL Server Database
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: corporatetravel-sqlserver
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: corporatetravel-postgres
     environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourStrong@Passw0rd
-      - MSSQL_PID=Developer
+      - POSTGRES_DB=corporatetravel
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
     ports:
-      - "1433:1433"
+      - "5432:5432"
     volumes:
-      - sqlserver_data:/var/opt/mssql
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - corporatetravel-network
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong@Passw0rd -Q 'SELECT 1' || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d corporatetravel"]
       interval: 10s
-      timeout: 3s
-      retries: 10
+      timeout: 5s
+      retries: 5
 
   # Backend API
   backend:
@@ -29,11 +29,11 @@ services:
     container_name: corporatetravel-backend
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=CorporateTravel;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=corporatetravel;Username=postgres;Password=postgres
     ports:
-      - "5000:80"
+      - "5178:80"
     depends_on:
-      sqlserver:
+      postgres:
         condition: service_healthy
     networks:
       - corporatetravel-network
@@ -43,7 +43,7 @@ services:
       - /app/obj
 
 volumes:
-  sqlserver_data:
+  postgres_data:
     driver: local
 
 networks:

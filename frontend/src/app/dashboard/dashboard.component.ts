@@ -40,14 +40,39 @@ export class DashboardComponent implements OnInit, OnDestroy {
       legend: {
         display: true,
         position: 'top',
+        labels: {
+          color: '#212121',
+          font: {
+            size: 12
+          },
+          padding: 20
+        }
       },
-    },
+      tooltip: {
+        backgroundColor: '#ffffff',
+        titleColor: '#212121',
+        bodyColor: '#212121',
+        borderColor: '#e0e0e0',
+        borderWidth: 1,
+        cornerRadius: 8,
+        displayColors: true,
+        titleFont: {
+          size: 14,
+          weight: 'bold'
+        },
+        bodyFont: {
+          size: 13
+        }
+      }
+    }
   };
   public pieChartData: ChartData<'pie', number[], string | string[]> = {
-    labels: ['Pending', 'Approved', 'Rejected'],
+    labels: ['Pendente', 'Aprovado', 'Rejeitado'],
     datasets: [{
       data: [0, 0, 0],
-      backgroundColor: ['#ff9800', '#4caf50', '#f44336']
+      backgroundColor: ['#ff9800', '#4caf50', '#f44336'],
+      borderWidth: 2,
+      borderColor: '#ffffff'
     }]
   };
   public pieChartType: ChartType = 'pie';
@@ -124,40 +149,62 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private getStatusColors(): string[] {
     const styles = getComputedStyle(document.body);
     return [
-      styles.getPropertyValue('--pending-bg').trim() || '#1976d2',   // Pending
-      styles.getPropertyValue('--approved-bg').trim() || '#388e3c',  // Approved
-      styles.getPropertyValue('--rejected-bg').trim() || '#d32f2f'   // Rejected
+      styles.getPropertyValue('--pending-bg').trim() || '#ff9800',   // Pending
+      styles.getPropertyValue('--approved-bg').trim() || '#4caf50',  // Approved
+      styles.getPropertyValue('--rejected-bg').trim() || '#f44336'   // Rejected
     ];
   }
 
   private updatePieChart(): void {
-    this.pieChartData = {
-      labels: ['Pending', 'Approved', 'Rejected'],
-      datasets: [{
-        data: [this.stats.pending, this.stats.approved, this.stats.rejected],
-        backgroundColor: this.getStatusColors()
-      }]
-    };
-    // Atualizar opções para legendas e labels no dark mode
     const styles = getComputedStyle(document.documentElement);
     const textColor = styles.getPropertyValue('--text-primary').trim() || '#212121';
-    const baseOptions = this.pieChartOptions || {};
-    const basePlugins = baseOptions.plugins || {};
-    const baseLegend = basePlugins.legend || {};
-    const backgroundColor = styles.getPropertyValue('--card-color').trim() || '#23272b';
+    const backgroundColor = styles.getPropertyValue('--card-color').trim() || '#ffffff';
+    const borderColor = styles.getPropertyValue('--divider-color').trim() || '#e0e0e0';
+    const isDarkMode = document.body.classList.contains('dark-mode');
+
+    this.pieChartData = {
+      labels: ['Pendente', 'Aprovado', 'Rejeitado'],
+      datasets: [{
+        data: [this.stats.pending, this.stats.approved, this.stats.rejected],
+        backgroundColor: this.getStatusColors(),
+        borderWidth: 2,
+        borderColor: isDarkMode ? '#424242' : '#ffffff'
+      }]
+    };
 
     this.pieChartOptions = {
-      ...baseOptions,
+      responsive: true,
       plugins: {
-        ...basePlugins,
         legend: {
-          ...baseLegend,
+          display: true,
+          position: 'top',
           labels: {
-            color: textColor
+            color: textColor,
+            font: {
+              size: 12
+            },
+            padding: 20,
+            usePointStyle: true,
+            pointStyle: 'circle'
+          }
+        },
+        tooltip: {
+          backgroundColor: isDarkMode ? '#424242' : '#ffffff',
+          titleColor: isDarkMode ? '#ffffff' : '#212121',
+          bodyColor: isDarkMode ? '#ffffff' : '#212121',
+          borderColor: borderColor,
+          borderWidth: 1,
+          cornerRadius: 8,
+          displayColors: true,
+          titleFont: {
+            size: 14,
+            weight: 'bold'
+          },
+          bodyFont: {
+            size: 13
           }
         }
-      },
-      backgroundColor: backgroundColor
+      }
     };
   }
 

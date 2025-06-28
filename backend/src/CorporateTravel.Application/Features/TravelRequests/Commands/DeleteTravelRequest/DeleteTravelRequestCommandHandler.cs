@@ -31,10 +31,10 @@ public class DeleteTravelRequestCommandHandler : IRequestHandler<DeleteTravelReq
             return CommandResult.Failure("Only pending travel requests can be deleted");
         }
 
-        // Only the requesting user can delete their own travel request
-        if (travelRequest.RequestingUserId != request.RequestingUserId)
+        // Only administrators can delete travel requests
+        if (!request.UserRoles.Contains("Admin"))
         {
-            return CommandResult.Failure("You can only delete your own travel requests");
+            return CommandResult.Failure("Only administrators can delete travel requests");
         }
 
         await _repository.DeleteAsync(request.Id);

@@ -423,3 +423,132 @@ body.dark-mode .notification-header {
   background: var(--card-color);
   border-top: 1px solid var(--divider-color);
 }
+
+/* Dark mode styles for tables */
+body.dark-mode .users-table-container,
+body.dark-mode .requests-table-container {
+  background-color: var(--card-color) !important;
+}
+
+body.dark-mode .users-table,
+body.dark-mode .requests-table {
+  background-color: var(--card-color) !important;
+}
+
+body.dark-mode .users-table .mat-header-row,
+body.dark-mode .users-table .mat-header-cell,
+body.dark-mode .users-table .mat-row,
+body.dark-mode .users-table .mat-cell,
+body.dark-mode .requests-table .mat-header-row,
+body.dark-mode .requests-table .mat-header-cell,
+body.dark-mode .requests-table .mat-row,
+body.dark-mode .requests-table .mat-cell {
+  background-color: var(--card-color) !important;
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .users-table .mat-header-cell,
+body.dark-mode .requests-table .mat-header-cell {
+  background-color: var(--surface-color) !important;
+  color: var(--text-primary) !important;
+  border-bottom-color: var(--divider-color) !important;
+}
+
+body.dark-mode .users-table .mat-cell,
+body.dark-mode .requests-table .mat-cell {
+  color: var(--text-primary) !important;
+  border-bottom-color: var(--divider-color) !important;
+}
+
+body.dark-mode .users-table .clickable-row,
+body.dark-mode .requests-table .clickable-row {
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .users-table .clickable-row:hover,
+body.dark-mode .requests-table .clickable-row:hover {
+  background-color: var(--hover-color) !important;
+}
+
+body.dark-mode .users-table .selected-row,
+body.dark-mode .requests-table .selected-row {
+  background-color: rgba(25, 118, 210, 0.1) !important;
+}
+
+body.dark-mode .mat-paginator,
+body.dark-mode .mat-mdc-paginator,
+body.dark-mode .mat-mdc-paginator-container,
+body.dark-mode .mat-mdc-paginator-range-actions,
+body.dark-mode .mat-mdc-paginator-page-size,
+body.dark-mode .mat-mdc-paginator-navigation {
+  background-color: var(--surface-color) !important;
+  color: var(--text-primary) !important;
+  border-top-color: var(--divider-color) !important;
+}
+
+body.dark-mode .mat-mdc-paginator-page-size-label,
+body.dark-mode .mat-mdc-paginator-range-label {
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .mat-mdc-paginator-navigation-previous,
+body.dark-mode .mat-mdc-paginator-navigation-next,
+body.dark-mode .mat-mdc-paginator-navigation-first,
+body.dark-mode .mat-mdc-paginator-navigation-last {
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .mat-mdc-paginator-navigation-previous:disabled,
+body.dark-mode .mat-mdc-paginator-navigation-next:disabled,
+body.dark-mode .mat-mdc-paginator-navigation-first:disabled,
+body.dark-mode .mat-mdc-paginator-navigation-last:disabled {
+  color: var(--text-disabled) !important;
+}
+
+/* Dark mode styles for status badges */
+body.dark-mode .status-badge.status-pending {
+  background-color: var(--pending-bg) !important;
+  color: var(--on-pending) !important;
+}
+
+body.dark-mode .status-badge.status-approved {
+  background-color: var(--approved-bg) !important;
+  color: var(--on-approved) !important;
+}
+
+body.dark-mode .status-badge.status-rejected {
+  background-color: var(--rejected-bg) !important;
+  color: var(--on-rejected) !important;
+}
+
+/* Dark mode styles for Chart.js */
+body.dark-mode canvas {
+  filter: brightness(1.1);
+}
+
+body.dark-mode .chartjs-tooltip {
+  background-color: var(--surface-color) !important;
+  border: 1px solid var(--divider-color) !important;
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .chartjs-legend {
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .chartjs-legend-item {
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .chartjs-legend-item-text {
+  color: var(--text-primary) !important;
+}
+
+/* Garantir que os tooltips do Chart.js sejam visíveis no modo escuro */
+body.dark-mode .chartjs-tooltip-key {
+  background-color: var(--text-primary) !important;
+}
+
+body.dark-mode .chartjs-tooltip-value {
+  color: var(--text-primary) !important;
+}

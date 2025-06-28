@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -61,7 +61,7 @@ export const MY_DATE_FORMATS = {
 
         <mat-form-field appearance="outline" style="width: 100%; margin-bottom: 16px;">
           <mat-label>Data de Início</mat-label>
-          <input matInput [matDatepicker]="startPicker" formControlName="startDate" required placeholder="dd/mm/aaaa">
+          <input matInput [matDatepicker]="startPicker" formControlName="startDate" required>
           <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
           <mat-datepicker #startPicker></mat-datepicker>
           <mat-error *ngIf="form.get('startDate')?.hasError('required')">
@@ -71,7 +71,7 @@ export const MY_DATE_FORMATS = {
 
         <mat-form-field appearance="outline" style="width: 100%; margin-bottom: 16px;">
           <mat-label>Data de Fim</mat-label>
-          <input matInput [matDatepicker]="endPicker" formControlName="endDate" required placeholder="dd/mm/aaaa">
+          <input matInput [matDatepicker]="endPicker" formControlName="endDate" required>
           <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
           <mat-datepicker #endPicker></mat-datepicker>
           <mat-error *ngIf="form.get('endDate')?.hasError('required')">
@@ -100,16 +100,76 @@ export const MY_DATE_FORMATS = {
     mat-dialog-content {
       min-width: 500px;
     }
+    
+    ::ng-deep .mat-mdc-form-field {
+      .mat-mdc-form-field-flex {
+        background-color: var(--card-color);
+      }
+      
+      .mat-mdc-form-field-label {
+        color: var(--text-secondary);
+      }
+      
+      .mat-mdc-form-field-outline {
+        color: var(--divider-color);
+      }
+      
+      .mat-mdc-form-field-outline-thick {
+        color: var(--primary-color);
+      }
+      
+      input, textarea {
+        color: var(--text-primary);
+      }
+      
+      input::placeholder {
+        color: var(--text-secondary);
+        opacity: 0.7;
+      }
+    }
+    
+    ::ng-deep .mat-mdc-datepicker-toggle {
+      color: var(--text-secondary);
+    }
+    
+    ::ng-deep .mat-mdc-datepicker-content {
+      background-color: var(--card-color);
+      color: var(--text-primary);
+    }
+    
+    ::ng-deep .mat-mdc-calendar {
+      background-color: var(--card-color);
+      color: var(--text-primary);
+    }
+    
+    ::ng-deep .mat-mdc-calendar-header {
+      background-color: var(--surface-color);
+      color: var(--text-primary);
+    }
+    
+    ::ng-deep .mat-mdc-calendar-body-cell {
+      color: var(--text-primary);
+    }
+    
+    ::ng-deep .mat-mdc-calendar-body-cell:hover {
+      background-color: var(--hover-color);
+    }
+    
+    ::ng-deep .mat-mdc-calendar-body-selected {
+      background-color: var(--primary-color);
+      color: white;
+    }
   `]
 })
-export class CreateTravelRequestDialogComponent {
+export class CreateTravelRequestDialogComponent implements OnInit {
   form: FormGroup;
   loading = false;
 
   constructor(
     private dialogRef: MatDialogRef<CreateTravelRequestDialogComponent>,
     private fb: FormBuilder,
-    private travelRequestService: TravelRequestService
+    private travelRequestService: TravelRequestService,
+    private dateAdapter: DateAdapter<Date>
   ) {
     this.form = this.fb.group({
       origin: ['', [Validators.required]],
@@ -118,6 +178,11 @@ export class CreateTravelRequestDialogComponent {
       endDate: ['', [Validators.required]],
       reason: ['', [Validators.required]]
     });
+  }
+
+  ngOnInit() {
+    // Configurar o locale para português brasileiro
+    this.dateAdapter.setLocale('pt-BR');
   }
 
   onSubmit() {

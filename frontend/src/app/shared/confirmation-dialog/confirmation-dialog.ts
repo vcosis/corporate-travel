@@ -44,15 +44,14 @@ export interface ConfirmationDialogData {
           mat-dialog-close 
           class="cancel-button"
           cdkFocusInitial>
-          {{ data.cancelText || 'Cancel' }}
+          {{ data.cancelText || 'Cancelar' }}
         </button>
         <button 
           mat-raised-button 
           [color]="data.confirmColor || 'warn'"
           [mat-dialog-close]="true"
           class="confirm-button">
-          <mat-icon *ngIf="data.type === 'error' || data.confirmColor === 'warn'">delete</mat-icon>
-          {{ data.confirmText || 'Confirm' }}
+          {{ data.confirmText || 'Confirmar' }}
         </button>
       </mat-dialog-actions>
     </div>

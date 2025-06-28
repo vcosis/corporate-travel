@@ -34,6 +34,16 @@ export interface PaginatedResult<T> {
   hasPreviousPage: boolean;
 }
 
+export interface TravelRequestFilters {
+  period?: string;
+  requestingUser?: string;
+  approver?: string;
+  sortBy?: string;
+  sortOrder?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class TravelRequestService {
   private apiUrl = environment.apiUrl + '/travelrequests';
@@ -44,10 +54,31 @@ export class TravelRequestService {
     return this.http.post<TravelRequest>(this.apiUrl, travelRequest);
   }
 
-  getAll(page = 1, pageSize = 10, status?: string, searchTerm?: string): Observable<PaginatedResult<TravelRequest>> {
-    let params = new HttpParams().set('page', page).set('pageSize', pageSize);
+  getAll(
+    page = 1, 
+    pageSize = 10, 
+    status?: string, 
+    searchTerm?: string, 
+    additionalFilters?: TravelRequestFilters
+  ): Observable<PaginatedResult<TravelRequest>> {
+    let params = new HttpParams()
+      .set('page', page)
+      .set('pageSize', pageSize);
+    
     if (status) params = params.set('status', status);
     if (searchTerm) params = params.set('searchTerm', searchTerm);
+    
+    // Adicionar filtros adicionais
+    if (additionalFilters) {
+      if (additionalFilters.period) params = params.set('period', additionalFilters.period);
+      if (additionalFilters.requestingUser) params = params.set('requestingUser', additionalFilters.requestingUser);
+      if (additionalFilters.approver) params = params.set('approver', additionalFilters.approver);
+      if (additionalFilters.sortBy) params = params.set('sortBy', additionalFilters.sortBy);
+      if (additionalFilters.sortOrder) params = params.set('sortOrder', additionalFilters.sortOrder);
+      if (additionalFilters.startDate) params = params.set('startDate', additionalFilters.startDate);
+      if (additionalFilters.endDate) params = params.set('endDate', additionalFilters.endDate);
+    }
+    
     return this.http.get<PaginatedResult<TravelRequest>>(this.apiUrl, { params });
   }
 
@@ -70,6 +101,18 @@ export class TravelRequestService {
 
   delete(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+
+  batchApprove(ids: string[]): Observable<any> {
+    return this.http.post(`${this.apiUrl}/batch-approve`, { ids });
+  }
+
+  batchReject(ids: string[]): Observable<any> {
+    return this.http.post(`${this.apiUrl}/batch-reject`, { ids });
+  }
+
+  batchDelete(ids: string[]): Observable<any> {
+    return this.http.post(`${this.apiUrl}/batch-delete`, { ids });
   }
 
   // get all, get by id, approve, reject methods will be added here

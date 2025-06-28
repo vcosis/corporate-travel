@@ -30,13 +30,21 @@ public class GetAllTravelRequestsQueryHandler : IRequestHandler<GetAllTravelRequ
         Console.WriteLine($"UserRoles: [{string.Join(", ", request.UserRoles)}]");
         Console.WriteLine($"IsManagerOrAdmin: {isManagerOrAdmin}");
         Console.WriteLine($"Filtering by userId: {(isManagerOrAdmin ? "null (all requests)" : request.UserId)}");
+        Console.WriteLine($"Additional filters: Period={request.Period}, SortBy={request.SortBy}, SortOrder={request.SortOrder}");
         
         var result = await _repository.GetPaginatedAsync(
             page: request.Page,
             pageSize: request.PageSize,
             status: request.Status,
             searchTerm: request.SearchTerm,
-            userId: isManagerOrAdmin ? null : request.UserId
+            userId: isManagerOrAdmin ? null : request.UserId,
+            period: request.Period,
+            requestingUser: request.RequestingUser,
+            approver: request.Approver,
+            sortBy: request.SortBy,
+            sortOrder: request.SortOrder,
+            startDate: request.StartDate,
+            endDate: request.EndDate
         );
 
         Console.WriteLine($"Repository returned {result.Items.Count()} items out of {result.TotalCount} total");

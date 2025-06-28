@@ -15,6 +15,7 @@ using CorporateTravel.Application.Features.TravelRequests.Commands.DeleteTravelR
 using CorporateTravel.API.Attributes;
 using Microsoft.EntityFrameworkCore;
 using CorporateTravel.Infrastructure.Data;
+using System.Collections.Generic;
 
 namespace CorporateTravel.API.Controllers;
 
@@ -94,9 +95,12 @@ public class TravelRequestsController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [AuthorizeRoles("Admin")]
     public async Task<IActionResult> Update(Guid id, UpdateTravelRequestDto updateTravelRequestDto)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userRoles = User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+        
         if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
         {
             return BadRequest("Invalid user");
@@ -106,6 +110,7 @@ public class TravelRequestsController : ControllerBase
         {
             Id = id,
             RequestingUserId = userGuid,
+            UserRoles = userRoles,
             Origin = updateTravelRequestDto.Origin,
             Destination = updateTravelRequestDto.Destination,
             Reason = updateTravelRequestDto.Reason,
@@ -125,9 +130,12 @@ public class TravelRequestsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [AuthorizeRoles("Admin")]
     public async Task<IActionResult> Delete(Guid id)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userRoles = User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+        
         if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
         {
             return BadRequest("Invalid user");
@@ -136,7 +144,8 @@ public class TravelRequestsController : ControllerBase
         var command = new DeleteTravelRequestCommand
         {
             Id = id,
-            RequestingUserId = userGuid
+            RequestingUserId = userGuid,
+            UserRoles = userRoles
         };
 
         var result = await _mediator.Send(command);
@@ -207,5 +216,61 @@ public class TravelRequestsController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
+    }
+
+    public class BatchTravelRequestActionDto {
+        public List<Guid> Ids { get; set; } = new();
+    }
+
+    [HttpPost("batch-approve")]
+    [AuthorizeRoles("Manager", "Admin")]
+    public async Task<IActionResult> BatchApprove([FromBody] BatchTravelRequestActionDto dto)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
+            return BadRequest("Invalid user");
+        var results = new List<object>();
+        foreach (var id in dto.Ids)
+        {
+            var command = new ApproveTravelRequestCommand { Id = id, ApproverId = userGuid };
+            var result = await _mediator.Send(command);
+            results.Add(new { id, result });
+        }
+        return Ok(results);
+    }
+
+    [HttpPost("batch-reject")]
+    [AuthorizeRoles("Manager", "Admin")]
+    public async Task<IActionResult> BatchReject([FromBody] BatchTravelRequestActionDto dto)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
+            return BadRequest("Invalid user");
+        var results = new List<object>();
+        foreach (var id in dto.Ids)
+        {
+            var command = new RejectTravelRequestCommand { Id = id, ApproverId = userGuid };
+            var result = await _mediator.Send(command);
+            results.Add(new { id, result });
+        }
+        return Ok(results);
+    }
+
+    [HttpPost("batch-delete")]
+    [AuthorizeRoles("Admin")]
+    public async Task<IActionResult> BatchDelete([FromBody] BatchTravelRequestActionDto dto)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var userRoles = User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+        if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userGuid))
+            return BadRequest("Invalid user");
+        var results = new List<object>();
+        foreach (var id in dto.Ids)
+        {
+            var command = new DeleteTravelRequestCommand { Id = id, RequestingUserId = userGuid, UserRoles = userRoles };
+            var result = await _mediator.Send(command);
+            results.Add(new { id, result });
+        }
+        return Ok(results);
     }
 } 

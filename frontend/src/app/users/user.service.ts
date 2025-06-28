@@ -43,13 +43,25 @@ export class UserService {
 
   constructor(private http: HttpClient) {}
 
-  getUsers(page: number = 1, pageSize: number = 10, searchTerm?: string): Observable<PaginatedResult<User>> {
+  getUsers(page: number = 1, pageSize: number = 10, searchTerm?: string, roleFilter?: string, statusFilter?: string, sortBy?: string): Observable<PaginatedResult<User>> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('pageSize', pageSize.toString());
 
     if (searchTerm) {
       params = params.set('searchTerm', searchTerm);
+    }
+
+    if (roleFilter) {
+      params = params.set('roleFilter', roleFilter);
+    }
+
+    if (statusFilter) {
+      params = params.set('statusFilter', statusFilter);
+    }
+
+    if (sortBy) {
+      params = params.set('sortBy', sortBy);
     }
 
     const url = this.apiUrl;
@@ -67,6 +79,17 @@ export class UserService {
   }
 
   deleteUser(userId: string): Observable<any> {
+    console.log('=== deleteUser service ===');
+    console.log('User ID:', userId);
+    console.log('User ID type:', typeof userId);
+    console.log('User ID length:', userId.length);
+    console.log('Full URL:', `${this.apiUrl}/${userId}`);
+    
+    if (!userId || userId.trim() === '') {
+      console.error('Invalid user ID provided');
+      throw new Error('ID do usuário é obrigatório');
+    }
+    
     return this.http.delete(`${this.apiUrl}/${userId}`);
   }
 } 

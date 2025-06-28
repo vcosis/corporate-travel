@@ -10,7 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { RouterModule } from '@angular/router';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule, FormGroup } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -21,6 +21,14 @@ import { EditTravelRequestDialogComponent } from '../edit-travel-request-dialog/
 import { TravelRequestDetailsDialogComponent } from '../travel-request-details-dialog/travel-request-details-dialog.component';
 import { BreadcrumbComponent, BreadcrumbItem } from '../../shared/breadcrumb/breadcrumb.component';
 import { BreadcrumbService } from '../../shared/breadcrumb/breadcrumb.service';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatChipsModule } from '@angular/material/chips';
+import { SelectionModel } from '@angular/cdk/collections';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-travel-request-list',
@@ -40,23 +48,87 @@ import { BreadcrumbService } from '../../shared/breadcrumb/breadcrumb.service';
     MatInputModule,
     MatDialogModule,
     MatTooltipModule,
-    BreadcrumbComponent
+    BreadcrumbComponent,
+    MatTabsModule,
+    MatProgressSpinnerModule,
+    MatSelectModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatChipsModule,
+    MatCheckboxModule
   ],
   templateUrl: './travel-request-list.html',
   styleUrls: ['./travel-request-list.scss']
 })
 export class TravelRequestListComponent implements OnInit, AfterViewInit {
-  displayedColumns: string[] = ['requestCode', 'requestingUserName', 'origin', 'destination', 'startDate', 'status', 'actions'];
+  displayedColumns: string[] = [];
   dataSource = new MatTableDataSource<TravelRequest>([]);
+  pendingDataSource = new MatTableDataSource<TravelRequest>([]);
+  historyDataSource = new MatTableDataSource<TravelRequest>([]);
   isLoading = false;
   totalCount = 0;
   pageSize = 10;
   pageIndex = 0;
-  filterControl = new FormControl('');
-  filterValue = '';
   breadcrumbItems: BreadcrumbItem[] = [];
   isManager = false;
   isAdmin = false;
+  selectedTabIndex = 0;
+  pendingRequests: TravelRequest[] = [];
+  historyRequests: TravelRequest[] = [];
+  selection = new SelectionModel<TravelRequest>(true, []);
+
+  // Filtros refinados
+  pendingFilters = new FormGroup({
+    period: new FormControl('7days'),
+    requestingUser: new FormControl(''),
+    sortBy: new FormControl('createdAt'),
+    sortOrder: new FormControl('desc')
+  });
+
+  historyFilters = new FormGroup({
+    status: new FormControl(''),
+    period: new FormControl('30days'),
+    requestingUser: new FormControl(''),
+    approver: new FormControl(''),
+    sortBy: new FormControl('approvalDate'),
+    sortOrder: new FormControl('desc')
+  });
+
+  // Opções de filtros
+  periodOptions = [
+    { value: '7days', label: 'Últimos 7 dias' },
+    { value: '30days', label: 'Últimos 30 dias' },
+    { value: '3months', label: 'Últimos 3 meses' },
+    { value: '6months', label: 'Últimos 6 meses' },
+    { value: '1year', label: 'Último ano' },
+    { value: 'all', label: 'Todas' }
+  ];
+
+  statusOptions = [
+    { value: '', label: 'Todos os status' },
+    { value: 'approved', label: 'Aprovadas' },
+    { value: 'rejected', label: 'Rejeitadas' }
+  ];
+
+  sortOptions = [
+    { value: 'createdAt', label: 'Data de criação' },
+    { value: 'startDate', label: 'Data de início' },
+    { value: 'requestingUserName', label: 'Solicitante' },
+    { value: 'requestCode', label: 'Código da solicitação' }
+  ];
+
+  historySortOptions = [
+    { value: 'approvalDate', label: 'Data de aprovação' },
+    { value: 'createdAt', label: 'Data de criação' },
+    { value: 'startDate', label: 'Data de início' },
+    { value: 'requestingUserName', label: 'Solicitante' },
+    { value: 'approverName', label: 'Aprovador' }
+  ];
+
+  sortOrderOptions = [
+    { value: 'desc', label: 'Mais recentes primeiro' },
+    { value: 'asc', label: 'Mais antigas primeiro' }
+  ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -78,15 +150,38 @@ export class TravelRequestListComponent implements OnInit, AfterViewInit {
     console.log('Has Manager role:', this.authService.hasRole('Manager'));
     
     this.initializeBreadcrumb();
+    this.setDisplayedColumns();
+    this.setupFilterSubscriptions();
     this.loadTravelRequests();
-    this.filterControl.valueChanges.pipe(
-      debounceTime(400),
+  }
+
+  private setupFilterSubscriptions(): void {
+    // Filtros da aba pendentes
+    this.pendingFilters.valueChanges.pipe(
+      debounceTime(300),
       distinctUntilChanged()
-    ).subscribe(value => {
-      this.filterValue = value || '';
+    ).subscribe(() => {
       this.pageIndex = 0;
       this.loadTravelRequests();
     });
+
+    // Filtros da aba histórico
+    this.historyFilters.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.pageIndex = 0;
+      this.loadTravelRequests();
+    });
+  }
+
+  private setDisplayedColumns(): void {
+    this.displayedColumns = ['requestCode', 'requestingUserName', 'origin', 'destination', 'startDate', 'status'];
+    
+    // Adicionar coluna de ações apenas para administradores
+    if (this.isAdmin) {
+      this.displayedColumns.push('actions');
+    }
   }
 
   private initializeBreadcrumb(): void {
@@ -103,14 +198,34 @@ export class TravelRequestListComponent implements OnInit, AfterViewInit {
 
   loadTravelRequests() {
     this.isLoading = true;
-    console.log('Loading travel requests - Page:', this.pageIndex + 1, 'PageSize:', this.pageSize, 'Filter:', this.filterValue);
     
-    this.travelRequestService.getAll(this.pageIndex + 1, this.pageSize, undefined, this.filterValue).subscribe({
-      next: (result: PaginatedResult<TravelRequest>) => {
+    // Determinar filtros baseados na aba selecionada
+    let statusFilter = '';
+    let additionalFilters: any = {};
+    
+    if (this.selectedTabIndex === 0) {
+      // Aba Pendentes
+      statusFilter = 'pending';
+      additionalFilters = this.pendingFilters.value;
+    } else {
+      // Aba Histórico
+      additionalFilters = this.historyFilters.value;
+      statusFilter = additionalFilters['status'] || '';
+    }
+
+    this.travelRequestService.getAll(
+      this.pageIndex + 1, 
+      this.pageSize, 
+      statusFilter, 
+      undefined,
+      additionalFilters
+    ).subscribe({
+      next: (result) => {
         console.log('Travel requests loaded:', result);
         this.dataSource.data = result.items;
         this.totalCount = result.totalCount;
         console.log('Total count set to:', this.totalCount);
+        this.separateRequests(result.items);
         this.isLoading = false;
       },
       error: (error) => {
@@ -121,6 +236,57 @@ export class TravelRequestListComponent implements OnInit, AfterViewInit {
         this.isLoading = false;
       }
     });
+  }
+
+  separateRequests(requests: TravelRequest[]): void {
+    this.pendingRequests = requests.filter(req => {
+      const status = String(req.status).toLowerCase();
+      return status === '0' || status === 'pending';
+    });
+    
+    this.historyRequests = requests.filter(req => {
+      const status = String(req.status).toLowerCase();
+      return status === '1' || status === 'approved' || status === '2' || status === 'rejected';
+    });
+
+    this.pendingDataSource.data = this.pendingRequests;
+    this.historyDataSource.data = this.historyRequests;
+  }
+
+  onTabChange(index: number): void {
+    this.selectedTabIndex = index;
+    this.pageIndex = 0;
+    // Atualizar o paginator baseado na aba selecionada
+    if (this.paginator) {
+      this.paginator.pageIndex = 0;
+      this.paginator.pageSize = this.pageSize;
+    }
+    this.loadTravelRequests();
+  }
+
+  formatDate(dateString: string): string {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR');
+  }
+
+  getStatusClass(status: any): string {
+    if (status === null || status === undefined) return '';
+    
+    const value = String(status).toLowerCase();
+    switch (value) {
+      case '0':
+      case 'pending':
+        return 'status-pending';
+      case '1':
+      case 'approved':
+        return 'status-approved';
+      case '2':
+      case 'rejected':
+        return 'status-rejected';
+      default:
+        return '';
+    }
   }
 
   onPageChange(event?: any) {
@@ -189,26 +355,6 @@ export class TravelRequestListComponent implements OnInit, AfterViewInit {
     });
   }
 
-  approve(id: string): void {
-    this.travelRequestService.approve(id).subscribe({
-      next: () => {
-        this.snackBar.open('Solicitação aprovada com sucesso!', 'Fechar', { duration: 3000 });
-        this.loadTravelRequests();
-      },
-      error: () => this.snackBar.open('Erro ao aprovar solicitação', 'Fechar', { duration: 3000 })
-    });
-  }
-
-  reject(id: string): void {
-    this.travelRequestService.reject(id).subscribe({
-      next: () => {
-        this.snackBar.open('Solicitação rejeitada com sucesso!', 'Fechar', { duration: 3000 });
-        this.loadTravelRequests();
-      },
-      error: () => this.snackBar.open('Erro ao rejeitar solicitação', 'Fechar', { duration: 3000 })
-    });
-  }
-
   delete(id: string): void {
     const travelRequest = this.dataSource.data.find(tr => tr.id === id);
     if (!travelRequest) return;
@@ -233,29 +379,55 @@ export class TravelRequestListComponent implements OnInit, AfterViewInit {
   }
 
   canEdit(row: TravelRequest): boolean {
-    // Admin pode editar qualquer solicitação
-    if (this.isAdmin) return true;
-    // Permissão padrão (exemplo: dono ou status)
-    const currentUserId = this.authService.getCurrentUserId();
-    return row.requestingUserId === currentUserId;
-  }
-
-  canDeleteTest(row: TravelRequest): boolean {
-    // Admin pode excluir qualquer solicitação
-    if (this.isAdmin) return true;
-    // Permissão padrão (apenas pendentes e do dono)
+    // Apenas administradores podem editar
+    if (!this.isAdmin) return false;
+    
+    // Apenas solicitações pendentes podem ser editadas
     const status = String(row.status).toLowerCase();
     const isPending = status === '0' || status === 'pending';
-    const currentUserId = this.authService.getCurrentUserId();
-    let isOwner = false;
-    if (currentUserId) {
-      if (row.requestingUserId && row.requestingUserId === currentUserId) {
-        isOwner = true;
-      } else if (row.requestingUser && row.requestingUser.id === currentUserId) {
-        isOwner = true;
-      }
+    
+    return isPending;
+  }
+
+  canDelete(row: TravelRequest): boolean {
+    // Apenas administradores podem excluir
+    if (!this.isAdmin) return false;
+    
+    // Apenas solicitações pendentes podem ser excluídas
+    const status = String(row.status).toLowerCase();
+    const isPending = status === '0' || status === 'pending';
+    
+    return isPending;
+  }
+
+  getDeleteTooltip(row: TravelRequest): string {
+    if (!this.isAdmin) {
+      return 'Apenas administradores podem excluir solicitações';
     }
-    return isPending && isOwner;
+    
+    const status = String(row.status).toLowerCase();
+    if (status === '1' || status === 'approved') {
+      return 'Solicitações aprovadas não podem ser excluídas';
+    } else if (status === '2' || status === 'rejected') {
+      return 'Solicitações rejeitadas não podem ser excluídas';
+    } else {
+      return 'Excluir solicitação';
+    }
+  }
+
+  getEditTooltip(row: TravelRequest): string {
+    if (!this.isAdmin) {
+      return 'Apenas administradores podem editar solicitações';
+    }
+    
+    const status = String(row.status).toLowerCase();
+    if (status === '1' || status === 'approved') {
+      return 'Solicitações aprovadas não podem ser editadas';
+    } else if (status === '2' || status === 'rejected') {
+      return 'Solicitações rejeitadas não podem ser editadas';
+    } else {
+      return 'Editar solicitação';
+    }
   }
 
   openDetailsDialog(travelRequest: TravelRequest) {
@@ -277,6 +449,111 @@ export class TravelRequestListComponent implements OnInit, AfterViewInit {
         this.loadTravelRequests(); // Recarregar a lista
       }
     });
+  }
+
+  get hasPendingSelection(): boolean {
+    return this.selection.selected.length > 0;
+  }
+
+  toggleAllPendingRows(): void {
+    if (this.isAllPendingSelected()) {
+      this.selection.clear();
+    } else {
+      this.pendingDataSource.data.forEach(row => this.selection.select(row));
+    }
+  }
+
+  isAllPendingSelected(): boolean {
+    const numSelected = this.selection.selected.length;
+    const numRows = this.pendingDataSource.data.length;
+    return numSelected === numRows && numRows > 0;
+  }
+
+  togglePendingRow(row: TravelRequest): void {
+    this.selection.toggle(row);
+  }
+
+  get pendingTableColumns() {
+    return (this.isAdmin || this.isManager)
+      ? ['select', ...this.displayedColumns]
+      : this.displayedColumns;
+  }
+
+  async batchApprove() {
+    const selected = this.selection.selected;
+    if (!selected.length) return;
+    try {
+      await this.travelRequestService.batchApprove(selected.map(r => r.id)).toPromise();
+      this.snackBar.open('Solicitações aprovadas com sucesso!', 'Fechar', { duration: 3000 });
+      this.selection.clear();
+      this.loadTravelRequests();
+    } catch (e) {
+      this.snackBar.open('Erro ao aprovar solicitações.', 'Fechar', { duration: 3000 });
+    }
+  }
+
+  async batchReject() {
+    const selected = this.selection.selected;
+    if (!selected.length) return;
+    try {
+      await this.travelRequestService.batchReject(selected.map(r => r.id)).toPromise();
+      this.snackBar.open('Solicitações rejeitadas com sucesso!', 'Fechar', { duration: 3000 });
+      this.selection.clear();
+      this.loadTravelRequests();
+    } catch (e) {
+      this.snackBar.open('Erro ao rejeitar solicitações.', 'Fechar', { duration: 3000 });
+    }
+  }
+
+  async batchDelete() {
+    const selected = this.selection.selected;
+    if (!selected.length) return;
+    try {
+      await this.travelRequestService.batchDelete(selected.map(r => r.id)).toPromise();
+      this.snackBar.open('Solicitações excluídas com sucesso!', 'Fechar', { duration: 3000 });
+      this.selection.clear();
+      this.loadTravelRequests();
+    } catch (e) {
+      this.snackBar.open('Erro ao excluir solicitações.', 'Fechar', { duration: 3000 });
+    }
+  }
+
+  exportHistory() {
+    this.isLoading = true;
+    const filters = Object.fromEntries(
+      Object.entries(this.historyFilters.value).map(([k, v]) => [k, v ?? undefined])
+    );
+    this.travelRequestService.getAll(1, 1000, '', '', filters).subscribe({
+      next: (result) => {
+        const items = result.items;
+        const csv = this.convertToCSV(items);
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'historico-solicitacoes.csv';
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.isLoading = false;
+      },
+      error: () => {
+        this.snackBar.open('Erro ao exportar histórico.', 'Fechar', { duration: 3000 });
+        this.isLoading = false;
+      }
+    });
+  }
+
+  convertToCSV(items: TravelRequest[]): string {
+    const header = ['Código', 'Solicitante', 'Origem', 'Destino', 'Data de Início', 'Status'];
+    const rows = items.map(item => [
+      item.requestCode,
+      item.requestingUserName,
+      item.origin,
+      item.destination,
+      item.startDate,
+      this.getStatusDescription(item.status)
+    ]);
+    return [header, ...rows].map(e => e.join(';')).join('\n');
   }
 }
 

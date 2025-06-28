@@ -86,7 +86,19 @@ public class TravelRequestRepository : ITravelRequestRepository
         return result;
     }
 
-    public async Task<PaginatedResult<TravelRequest>> GetPaginatedAsync(int page, int pageSize, string? status = null, string? searchTerm = null, string? userId = null)
+    public async Task<PaginatedResult<TravelRequest>> GetPaginatedAsync(
+        int page, 
+        int pageSize, 
+        string? status = null, 
+        string? searchTerm = null, 
+        string? userId = null,
+        string? period = null,
+        string? requestingUser = null,
+        string? approver = null,
+        string? sortBy = null,
+        string? sortOrder = null,
+        string? startDate = null,
+        string? endDate = null)
     {
         var query = _context.TravelRequests
             .Include(tr => tr.RequestingUser)
@@ -119,11 +131,52 @@ public class TravelRequestRepository : ITravelRequestRepository
             );
         }
 
+        // Filtro por período
+        if (!string.IsNullOrEmpty(period))
+        {
+            var cutoffDate = GetCutoffDate(period);
+            if (cutoffDate.HasValue)
+            {
+                query = query.Where(tr => tr.CreatedAt >= cutoffDate.Value);
+            }
+        }
+
+        // Filtro por solicitante
+        if (!string.IsNullOrEmpty(requestingUser))
+        {
+            query = query.Where(tr => 
+                tr.RequestingUser != null && 
+                tr.RequestingUser.UserName.ToLower().Contains(requestingUser.ToLower())
+            );
+        }
+
+        // Filtro por aprovador
+        if (!string.IsNullOrEmpty(approver))
+        {
+            query = query.Where(tr => 
+                tr.Approver != null && 
+                tr.Approver.UserName.ToLower().Contains(approver.ToLower())
+            );
+        }
+
+        // Filtro por data de início
+        if (!string.IsNullOrEmpty(startDate) && DateTime.TryParse(startDate, out var start))
+        {
+            query = query.Where(tr => tr.StartDate >= start);
+        }
+
+        if (!string.IsNullOrEmpty(endDate) && DateTime.TryParse(endDate, out var end))
+        {
+            query = query.Where(tr => tr.StartDate <= end);
+        }
+
+        // Aplicar ordenação
+        query = ApplySorting(query, sortBy, sortOrder);
+
         var totalCount = await query.CountAsync();
         var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
 
         var items = await query
-            .OrderByDescending(tr => tr.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -134,6 +187,36 @@ public class TravelRequestRepository : ITravelRequestRepository
             TotalCount = totalCount,
             Page = page,
             PageSize = pageSize
+        };
+    }
+
+    private DateTime? GetCutoffDate(string period)
+    {
+        var now = DateTime.UtcNow;
+        return period?.ToLower() switch
+        {
+            "7days" => now.AddDays(-7),
+            "30days" => now.AddDays(-30),
+            "3months" => now.AddMonths(-3),
+            "6months" => now.AddMonths(-6),
+            "1year" => now.AddYears(-1),
+            "all" => null,
+            _ => now.AddDays(-30) // padrão: 30 dias
+        };
+    }
+
+    private IQueryable<TravelRequest> ApplySorting(IQueryable<TravelRequest> query, string? sortBy, string? sortOrder)
+    {
+        var isDescending = string.IsNullOrEmpty(sortOrder) || sortOrder.ToLower() == "desc";
+        
+        return sortBy?.ToLower() switch
+        {
+            "startdate" => isDescending ? query.OrderByDescending(tr => tr.StartDate) : query.OrderBy(tr => tr.StartDate),
+            "requestingusername" => isDescending ? query.OrderByDescending(tr => tr.RequestingUser.UserName) : query.OrderBy(tr => tr.RequestingUser.UserName),
+            "requestcode" => isDescending ? query.OrderByDescending(tr => tr.RequestCode) : query.OrderBy(tr => tr.RequestCode),
+            "approvaldate" => isDescending ? query.OrderByDescending(tr => tr.ApprovalDate) : query.OrderBy(tr => tr.ApprovalDate),
+            "approvername" => isDescending ? query.OrderByDescending(tr => tr.Approver.UserName) : query.OrderBy(tr => tr.Approver.UserName),
+            _ => isDescending ? query.OrderByDescending(tr => tr.CreatedAt) : query.OrderBy(tr => tr.CreatedAt)
         };
     }
 }

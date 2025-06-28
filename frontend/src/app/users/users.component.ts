@@ -6,19 +6,25 @@ import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { combineLatest } from 'rxjs';
 import { UserService, User, PaginatedResult } from './user.service';
 import { EditUserDialogComponent } from './edit-user-dialog/edit-user-dialog.component';
 import { CreateUserDialogComponent } from './create-user-dialog/create-user-dialog.component';
 import { AuthService } from '../auth/auth.service';
 import { BreadcrumbComponent, BreadcrumbItem } from '../shared/breadcrumb/breadcrumb.component';
 import { BreadcrumbService } from '../shared/breadcrumb/breadcrumb.service';
+import { ConfirmationDialogService } from '../shared/confirmation-dialog/confirmation-dialog.service';
+import { SelectionModel } from '@angular/cdk/collections';
 
 @Component({
   selector: 'app-users',
@@ -31,10 +37,13 @@ import { BreadcrumbService } from '../shared/breadcrumb/breadcrumb.service';
     MatButtonModule,
     MatIconModule,
     MatProgressBarModule,
+    MatProgressSpinnerModule,
     MatSnackBarModule,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
+    MatCheckboxModule,
     MatDialogModule,
     RouterModule,
     BreadcrumbComponent
@@ -43,14 +52,21 @@ import { BreadcrumbService } from '../shared/breadcrumb/breadcrumb.service';
   styleUrls: ['./users.component.scss']
 })
 export class UsersComponent implements OnInit, AfterViewInit {
-  displayedColumns: string[] = ['name', 'email', 'roles', 'createdAt', 'actions'];
+  displayedColumns: string[] = ['select', 'name', 'email', 'roles', 'status', 'createdAt', 'actions'];
   dataSource = new MatTableDataSource<User>([]);
+  selection = new SelectionModel<User>(true, []);
   isLoading = false;
   totalCount = 0;
   pageSize = 10;
   pageIndex = 0;
   filterControl = new FormControl('');
+  roleFilterControl = new FormControl('');
+  statusFilterControl = new FormControl('');
+  sortByControl = new FormControl('name');
   filterValue = '';
+  roleFilterValue = '';
+  statusFilterValue = '';
+  sortByValue = 'name';
   breadcrumbItems: BreadcrumbItem[] = [];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -62,7 +78,8 @@ export class UsersComponent implements OnInit, AfterViewInit {
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
     private authService: AuthService,
-    private breadcrumbService: BreadcrumbService
+    private breadcrumbService: BreadcrumbService,
+    private confirmationDialogService: ConfirmationDialogService
   ) {}
 
   ngOnInit(): void {
@@ -72,15 +89,8 @@ export class UsersComponent implements OnInit, AfterViewInit {
     console.log('Has Admin role:', this.authService.hasRole('Admin'));
     
     this.initializeBreadcrumb();
+    this.setupFilters();
     this.loadUsers();
-    this.filterControl.valueChanges.pipe(
-      debounceTime(400),
-      distinctUntilChanged()
-    ).subscribe(value => {
-      this.filterValue = value || '';
-      this.pageIndex = 0;
-      this.loadUsers();
-    });
   }
 
   private initializeBreadcrumb(): void {
@@ -88,8 +98,25 @@ export class UsersComponent implements OnInit, AfterViewInit {
     this.breadcrumbItems = this.breadcrumbService.getBreadcrumbs();
   }
 
+  private setupFilters(): void {
+    // Combinar todos os filtros
+    combineLatest([
+      this.filterControl.valueChanges.pipe(debounceTime(400), distinctUntilChanged()),
+      this.roleFilterControl.valueChanges.pipe(distinctUntilChanged()),
+      this.statusFilterControl.valueChanges.pipe(distinctUntilChanged()),
+      this.sortByControl.valueChanges.pipe(distinctUntilChanged())
+    ]).subscribe(([searchValue, roleValue, statusValue, sortValue]) => {
+      this.filterValue = searchValue || '';
+      this.roleFilterValue = roleValue || '';
+      this.statusFilterValue = statusValue || '';
+      this.sortByValue = sortValue || 'name';
+      this.pageIndex = 0;
+      this.selection.clear();
+      this.loadUsers();
+    });
+  }
+
   ngAfterViewInit() {
-    // this.dataSource.paginator = this.paginator; // REMOVIDO para server-side paging
     this.dataSource.sort = this.sort;
     if (this.paginator) {
       this.paginator.page.subscribe(() => this.onPageChange());
@@ -98,9 +125,9 @@ export class UsersComponent implements OnInit, AfterViewInit {
 
   loadUsers() {
     this.isLoading = true;
-    console.log('Loading users - Page:', this.pageIndex + 1, 'PageSize:', this.pageSize, 'Filter:', this.filterValue);
+    console.log('Loading users - Page:', this.pageIndex + 1, 'PageSize:', this.pageSize, 'Filter:', this.filterValue, 'Role:', this.roleFilterValue, 'Status:', this.statusFilterValue, 'Sort:', this.sortByValue);
     
-    this.userService.getUsers(this.pageIndex + 1, this.pageSize, this.filterValue)
+    this.userService.getUsers(this.pageIndex + 1, this.pageSize, this.filterValue, this.roleFilterValue, this.statusFilterValue, this.sortByValue)
       .subscribe({
         next: (result: PaginatedResult<User>) => {
           console.log('Users loaded:', result);
@@ -129,14 +156,47 @@ export class UsersComponent implements OnInit, AfterViewInit {
     this.loadUsers();
   }
 
+  // Métodos de seleção
+  isAllSelected() {
+    const numSelected = this.selection.selected.length;
+    const numRows = this.dataSource.data.length;
+    return numSelected === numRows;
+  }
+
+  masterToggle() {
+    this.isAllSelected() ?
+      this.selection.clear() :
+      this.dataSource.data.forEach(row => this.selection.select(row));
+  }
+
+  get selectedUsers(): User[] {
+    return this.selection.selected;
+  }
+
+  // Métodos de filtros
+  clearFilters() {
+    this.filterControl.setValue('');
+    this.roleFilterControl.setValue('');
+    this.statusFilterControl.setValue('');
+    this.sortByControl.setValue('name');
+  }
+
+  // Métodos de exibição
   getRolesDisplay(roles: string[]): string {
     return roles.join(', ');
+  }
+
+  getStatusDisplay(user: User): string {
+    // Simular status baseado em alguma propriedade do usuário
+    // Você pode ajustar conforme sua lógica de negócio
+    return user.roles.includes('Admin') ? 'Ativo' : 'Ativo';
   }
 
   getFormattedDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString('pt-BR');
   }
 
+  // Métodos de ações da toolbar
   createUser() {
     const dialogRef = this.dialog.open(CreateUserDialogComponent, {
       width: '500px'
@@ -147,7 +207,63 @@ export class UsersComponent implements OnInit, AfterViewInit {
         this.snackBar.open('Usuário criado com sucesso!', 'Fechar', {
           duration: 3000
         });
-        this.loadUsers(); // Recarregar a lista
+        this.loadUsers();
+      }
+    });
+  }
+
+  updateSelectedUsers() {
+    if (this.selectedUsers.length === 1) {
+      this.editUser(this.selectedUsers[0]);
+    } else if (this.selectedUsers.length > 1) {
+      this.snackBar.open('Selecione apenas um usuário para editar', 'Fechar', {
+        duration: 3000
+      });
+    }
+  }
+
+  deleteSelectedUsers() {
+    if (this.selectedUsers.length === 0) return;
+
+    const adminUsers = this.selectedUsers.filter(user => user.roles.includes('Admin'));
+    if (adminUsers.length > 0) {
+      this.snackBar.open('Não é possível deletar usuários administradores', 'Fechar', {
+        duration: 3000
+      });
+      return;
+    }
+
+    const message = this.selectedUsers.length === 1 
+      ? `Tem certeza que deseja excluir o usuário "${this.selectedUsers[0].name}"? Esta ação não pode ser desfeita.`
+      : `Tem certeza que deseja excluir ${this.selectedUsers.length} usuários selecionados? Esta ação não pode ser desfeita.`;
+
+    this.confirmationDialogService.confirm({
+      title: 'Confirmar Exclusão',
+      message: message,
+      confirmText: 'Excluir',
+      cancelText: 'Cancelar',
+      confirmColor: 'warn',
+      type: 'error'
+    }).subscribe(confirmed => {
+      if (confirmed) {
+        const deletePromises = this.selectedUsers.map(user => 
+          this.userService.deleteUser(user.id).toPromise()
+        );
+
+        Promise.all(deletePromises)
+          .then(() => {
+            this.snackBar.open(`${this.selectedUsers.length} usuário(s) excluído(s) com sucesso!`, 'Fechar', {
+              duration: 3000
+            });
+            this.selection.clear();
+            this.loadUsers();
+          })
+          .catch(error => {
+            console.error('Erro ao excluir usuários:', error);
+            this.snackBar.open('Erro ao excluir usuários', 'Fechar', {
+              duration: 3000
+            });
+          });
       }
     });
   }
@@ -163,39 +279,91 @@ export class UsersComponent implements OnInit, AfterViewInit {
         this.snackBar.open('Usuário atualizado com sucesso!', 'Fechar', {
           duration: 3000
         });
-        this.loadUsers(); // Recarregar a lista
+        this.loadUsers();
       }
     });
   }
 
   deleteUser(userId: string) {
+    console.log('=== deleteUser ===');
+    console.log('User ID to delete:', userId);
+    console.log('User ID type:', typeof userId);
+    console.log('User ID length:', userId.length);
+    
+    if (!userId || userId.trim() === '') {
+      console.error('Invalid user ID provided');
+      this.snackBar.open('ID do usuário inválido', 'Fechar', {
+        duration: 3000
+      });
+      return;
+    }
+    
     const user = this.dataSource.data.find(u => u.id === userId);
-    if (!user) return;
-
-    // Verificar se é um admin
-    if (user.roles.includes('Admin')) {
-      this.snackBar.open('Não é possível deletar um usuário administrador', 'Fechar', {
+    console.log('Found user:', user);
+    
+    if (!user) {
+      console.log('User not found in data source');
+      this.snackBar.open('Usuário não encontrado', 'Fechar', {
         duration: 3000
       });
       return;
     }
 
-    const confirmMessage = `Tem certeza que deseja deletar o usuário "${user.name}"?`;
-    if (confirm(confirmMessage)) {
-      this.userService.deleteUser(userId).subscribe({
-        next: () => {
-          this.snackBar.open('Usuário deletado com sucesso!', 'Fechar', {
-            duration: 3000
-          });
-          this.loadUsers(); // Recarregar a lista
-        },
-        error: (error) => {
-          console.error('Erro ao deletar usuário:', error);
-          this.snackBar.open('Erro ao deletar usuário', 'Fechar', {
-            duration: 3000
-          });
-        }
+    if (user.roles.includes('Admin')) {
+      this.snackBar.open('Não é possível excluir um usuário administrador', 'Fechar', {
+        duration: 3000
       });
+      return;
     }
+
+    this.confirmationDialogService.confirm({
+      title: 'Confirmar Exclusão',
+      message: `Tem certeza que deseja excluir o usuário "${user.name}"? Esta ação não pode ser desfeita.`,
+      confirmText: 'Excluir',
+      cancelText: 'Cancelar',
+      confirmColor: 'warn',
+      type: 'error'
+    }).subscribe(confirmed => {
+      if (confirmed) {
+        console.log('Confirmation confirmed, calling deleteUser service with ID:', userId);
+        this.userService.deleteUser(userId).subscribe({
+          next: () => {
+            console.log('User deleted successfully');
+            this.snackBar.open('Usuário excluído com sucesso!', 'Fechar', {
+              duration: 3000
+            });
+            this.loadUsers();
+          },
+          error: (error) => {
+            console.error('Erro ao excluir usuário:', error);
+            console.error('Error status:', error.status);
+            console.error('Error message:', error.message);
+            console.error('Error error:', error.error);
+            
+            let errorMessage = 'Erro ao excluir usuário';
+            if (error.error && Array.isArray(error.error)) {
+              errorMessage = error.error.map((e: any) => e.description || e.message).join(', ');
+            } else if (error.error && error.error.description) {
+              errorMessage = error.error.description;
+            } else if (error.message) {
+              errorMessage = error.message;
+            }
+            
+            this.snackBar.open(errorMessage, 'Fechar', {
+              duration: 5000
+            });
+          }
+        });
+      }
+    });
+  }
+
+  hasActiveFilters(): boolean {
+    return !!(
+      this.filterControl.value ||
+      this.roleFilterControl.value ||
+      this.statusFilterControl.value ||
+      (this.sortByControl.value && this.sortByControl.value !== 'name')
+    );
   }
 } 

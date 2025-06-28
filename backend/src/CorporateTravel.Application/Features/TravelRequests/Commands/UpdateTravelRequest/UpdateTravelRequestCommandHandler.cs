@@ -34,10 +34,10 @@ public class UpdateTravelRequestCommandHandler : IRequestHandler<UpdateTravelReq
             throw new InvalidOperationException("Only pending travel requests can be updated");
         }
 
-        // Only the requesting user can update their own travel request
-        if (travelRequest.RequestingUserId != request.RequestingUserId)
+        // Only administrators can update travel requests
+        if (!request.UserRoles.Contains("Admin"))
         {
-            throw new InvalidOperationException("You can only update your own travel requests");
+            throw new InvalidOperationException("Only administrators can update travel requests");
         }
 
         // Update the travel request

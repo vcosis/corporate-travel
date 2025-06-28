@@ -122,147 +122,100 @@ namespace CorporateTravel.Infrastructure.Data
             context.TravelRequests.RemoveRange(context.TravelRequests);
             await context.SaveChangesAsync();
 
-            // Get users
-            var adminUser = await userManager.FindByEmailAsync("admin@corporatetravel.com");
-            var managerUser = await userManager.FindByEmailAsync("manager@corporatetravel.com");
-            var regularUser = await userManager.FindByEmailAsync("user@corporatetravel.com");
+            // Get users with "User" role only
+            var usersInUserRole = await userManager.GetUsersInRoleAsync("User");
+            
+            if (!usersInUserRole.Any())
+            {
+                Console.WriteLine("No users found with 'User' role. Skipping travel request seeding.");
+                return;
+            }
 
             var sampleRequests = new List<TravelRequest>();
+            var requestCounter = 1;
 
-            // Admin user requests
-            if (adminUser != null)
+            // Create sample travel requests for each user with "User" role
+            foreach (var user in usersInUserRole)
             {
+                // Generate unique request codes for this user's requests
+                var today = DateTime.UtcNow;
+                var datePrefix = today.ToString("yyyyMMdd");
+                var baseCode = $"TR-{datePrefix}";
+
                 sampleRequests.AddRange(new[]
                 {
                     new TravelRequest
                     {
-                        RequestingUserId = adminUser.Id,
+                        RequestingUserId = user.Id,
+                        RequestCode = $"{baseCode}-{requestCounter++:D4}",
                         Origin = "São Paulo, Brazil",
                         Destination = "New York, USA",
                         Reason = "Client Meeting",
-                        StartDate = DateTime.Now.AddDays(30),
-                        EndDate = DateTime.Now.AddDays(33),
+                        StartDate = DateTime.UtcNow.AddDays(30),
+                        EndDate = DateTime.UtcNow.AddDays(33),
                         Status = TravelRequestStatus.Approved,
-                        CreatedAt = DateTime.Now.AddDays(-10),
-                        UpdatedAt = DateTime.Now.AddDays(-8)
+                        CreatedAt = DateTime.UtcNow.AddDays(-10),
+                        UpdatedAt = DateTime.UtcNow.AddDays(-8)
                     },
                     new TravelRequest
                     {
-                        RequestingUserId = adminUser.Id,
+                        RequestingUserId = user.Id,
+                        RequestCode = $"{baseCode}-{requestCounter++:D4}",
                         Origin = "São Paulo, Brazil",
                         Destination = "Paris, France",
                         Reason = "Training Session",
-                        StartDate = DateTime.Now.AddDays(20),
-                        EndDate = DateTime.Now.AddDays(25),
-                        Status = TravelRequestStatus.Approved,
-                        CreatedAt = DateTime.Now.AddDays(-3),
-                        UpdatedAt = DateTime.Now.AddDays(-1)
+                        StartDate = DateTime.UtcNow.AddDays(20),
+                        EndDate = DateTime.UtcNow.AddDays(25),
+                        Status = TravelRequestStatus.Pending,
+                        CreatedAt = DateTime.UtcNow.AddDays(-3),
+                        UpdatedAt = DateTime.UtcNow.AddDays(-1)
                     },
                     new TravelRequest
                     {
-                        RequestingUserId = adminUser.Id,
+                        RequestingUserId = user.Id,
+                        RequestCode = $"{baseCode}-{requestCounter++:D4}",
                         Origin = "São Paulo, Brazil",
                         Destination = "Berlin, Germany",
                         Reason = "Trade Show",
-                        StartDate = DateTime.Now.AddDays(40),
-                        EndDate = DateTime.Now.AddDays(44),
-                        Status = TravelRequestStatus.Approved,
-                        CreatedAt = DateTime.Now.AddDays(-8),
-                        UpdatedAt = DateTime.Now.AddDays(-6)
-                    }
-                });
-            }
-
-            // Manager user requests
-            if (managerUser != null)
-            {
-                sampleRequests.AddRange(new[]
-                {
+                        StartDate = DateTime.UtcNow.AddDays(40),
+                        EndDate = DateTime.UtcNow.AddDays(44),
+                        Status = TravelRequestStatus.Rejected,
+                        CreatedAt = DateTime.UtcNow.AddDays(-8),
+                        UpdatedAt = DateTime.UtcNow.AddDays(-6)
+                    },
                     new TravelRequest
                     {
-                        RequestingUserId = managerUser.Id,
+                        RequestingUserId = user.Id,
+                        RequestCode = $"{baseCode}-{requestCounter++:D4}",
                         Origin = "São Paulo, Brazil",
                         Destination = "London, UK",
                         Reason = "Conference Attendance",
-                        StartDate = DateTime.Now.AddDays(45),
-                        EndDate = DateTime.Now.AddDays(50),
+                        StartDate = DateTime.UtcNow.AddDays(45),
+                        EndDate = DateTime.UtcNow.AddDays(50),
                         Status = TravelRequestStatus.Pending,
-                        CreatedAt = DateTime.Now.AddDays(-5),
-                        UpdatedAt = DateTime.Now.AddDays(-5)
+                        CreatedAt = DateTime.UtcNow.AddDays(-5),
+                        UpdatedAt = DateTime.UtcNow.AddDays(-5)
                     },
                     new TravelRequest
                     {
-                        RequestingUserId = managerUser.Id,
+                        RequestingUserId = user.Id,
+                        RequestCode = $"{baseCode}-{requestCounter++:D4}",
                         Origin = "São Paulo, Brazil",
                         Destination = "Sydney, Australia",
                         Reason = "Partner Meeting",
-                        StartDate = DateTime.Now.AddDays(75),
-                        EndDate = DateTime.Now.AddDays(80),
+                        StartDate = DateTime.UtcNow.AddDays(75),
+                        EndDate = DateTime.UtcNow.AddDays(80),
                         Status = TravelRequestStatus.Pending,
-                        CreatedAt = DateTime.Now.AddDays(-2),
-                        UpdatedAt = DateTime.Now.AddDays(-2)
-                    },
-                    new TravelRequest
-                    {
-                        RequestingUserId = managerUser.Id,
-                        Origin = "São Paulo, Brazil",
-                        Destination = "Singapore",
-                        Reason = "Regional Office Visit",
-                        StartDate = DateTime.Now.AddDays(90),
-                        EndDate = DateTime.Now.AddDays(95),
-                        Status = TravelRequestStatus.Pending,
-                        CreatedAt = DateTime.Now.AddDays(-1),
-                        UpdatedAt = DateTime.Now.AddDays(-1)
-                    }
-                });
-            }
-
-            // Regular user requests
-            if (regularUser != null)
-            {
-                sampleRequests.AddRange(new[]
-                {
-                    new TravelRequest
-                    {
-                        RequestingUserId = regularUser.Id,
-                        Origin = "São Paulo, Brazil",
-                        Destination = "Tokyo, Japan",
-                        Reason = "Business Development",
-                        StartDate = DateTime.Now.AddDays(60),
-                        EndDate = DateTime.Now.AddDays(67),
-                        Status = TravelRequestStatus.Rejected,
-                        CreatedAt = DateTime.Now.AddDays(-15),
-                        UpdatedAt = DateTime.Now.AddDays(-12)
-                    },
-                    new TravelRequest
-                    {
-                        RequestingUserId = regularUser.Id,
-                        Origin = "São Paulo, Brazil",
-                        Destination = "Toronto, Canada",
-                        Reason = "Team Building",
-                        StartDate = DateTime.Now.AddDays(55),
-                        EndDate = DateTime.Now.AddDays(60),
-                        Status = TravelRequestStatus.Rejected,
-                        CreatedAt = DateTime.Now.AddDays(-7),
-                        UpdatedAt = DateTime.Now.AddDays(-5)
-                    },
-                    new TravelRequest
-                    {
-                        RequestingUserId = regularUser.Id,
-                        Origin = "São Paulo, Brazil",
-                        Destination = "Miami, USA",
-                        Reason = "Vacation",
-                        StartDate = DateTime.Now.AddDays(100),
-                        EndDate = DateTime.Now.AddDays(105),
-                        Status = TravelRequestStatus.Pending,
-                        CreatedAt = DateTime.Now.AddDays(-1),
-                        UpdatedAt = DateTime.Now.AddDays(-1)
+                        CreatedAt = DateTime.UtcNow.AddDays(-2),
+                        UpdatedAt = DateTime.UtcNow.AddDays(-2)
                     }
                 });
             }
 
             await context.TravelRequests.AddRangeAsync(sampleRequests);
             await context.SaveChangesAsync();
+            
+            Console.WriteLine($"Created {sampleRequests.Count} travel requests for {usersInUserRole.Count} user(s) with 'User' role.");
         }
     }
 } 
