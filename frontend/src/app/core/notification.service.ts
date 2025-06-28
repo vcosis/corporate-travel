@@ -32,64 +32,40 @@ export class NotificationService {
   constructor(private http: HttpClient) {}
 
   public startConnection(token: string): Promise<void> {
-    console.log('=== NotificationService.startConnection ===');
-    console.log('Token exists:', !!token);
-    console.log('API URL:', environment.apiUrl);
-    
     this.hubConnection = new signalR.HubConnectionBuilder()
       .withUrl(`${environment.signalRHubUrl}?access_token=${token}`)
       .withAutomaticReconnect()
       .build();
 
-    console.log('Hub connection created');
     this.setupSignalRHandlers();
 
     return this.hubConnection.start()
       .then(() => {
-        console.log('SignalR connection started successfully');
-        console.log('Connection state:', this.hubConnection?.state);
+        // Connection started successfully
       })
       .catch(error => {
-        console.error('Error starting SignalR connection:', error);
         throw error;
       });
   }
 
   public stopConnection(): void {
-    console.log('=== stopConnection ===');
     if (this.hubConnection) {
-      console.log('Stopping SignalR connection...');
       this.hubConnection.stop();
-      console.log('SignalR connection stopped');
-    } else {
-      console.log('No SignalR connection to stop');
     }
-    console.log('=== End stopConnection ===');
   }
 
   private setupSignalRHandlers(): void {
     if (!this.hubConnection) {
-      console.log('No hub connection available for setting up handlers');
       return;
     }
 
-    console.log('Setting up SignalR handlers');
-
     // Receber nova notificação
     this.hubConnection.on('ReceiveNotification', (notification: Notification) => {
-      console.log('=== SignalR: ReceiveNotification ===');
-      console.log('Nova notificação recebida:', notification);
-      console.log('Notification ID:', notification.id);
-      console.log('Notification Title:', notification.title);
-      console.log('Notification Message:', notification.message);
-      
       // Verificar se a notificação já existe na lista
       const currentNotifications = this.notificationsSubject.value;
       const existingNotification = currentNotifications.find(n => n.id === notification.id);
       
       if (existingNotification) {
-        console.log('Notification already exists, skipping duplicate');
-        console.log('=== End SignalR: ReceiveNotification (duplicate) ===');
         return;
       }
       
@@ -102,41 +78,28 @@ export class NotificationService {
       
       // Mostrar toast/notificação visual
       this.showNotificationToast(notification);
-      console.log('=== End SignalR: ReceiveNotification ===');
     });
 
     // Atualizar contador de não lidas
     this.hubConnection.on('UpdateUnreadCount', (count: number) => {
-      console.log('=== SignalR: UpdateUnreadCount ===');
-      console.log('Novo contador de não lidas:', count);
       this.unreadCountSubject.next(count);
-      console.log('=== End SignalR: UpdateUnreadCount ===');
     });
 
     // Log de conexão estabelecida
     this.hubConnection.onreconnected((connectionId) => {
-      console.log('SignalR reconnected with connection ID:', connectionId);
+      // Reconnected
     });
 
     // Log de desconexão
     this.hubConnection.onclose((error) => {
-      console.log('SignalR connection closed:', error);
+      // Connection closed
     });
-
-    console.log('SignalR handlers setup completed');
   }
 
   private showNotificationToast(notification: Notification): void {
-    console.log('=== showNotificationToast ===');
-    console.log('Creating toast for notification:', notification);
-    console.log('Notification ID:', notification.id);
-    console.log('Notification Title:', notification.title);
-    
     // Verificar se já existe um toast para esta notificação
     const existingToast = document.querySelector(`[data-notification-id="${notification.id}"]`);
     if (existingToast) {
-      console.log('Toast already exists for this notification, skipping');
-      console.log('=== End showNotificationToast (duplicate) ===');
       return;
     }
     
@@ -151,21 +114,15 @@ export class NotificationService {
       </div>
     `;
     
-    console.log('Toast element created:', toast);
-    
     // Adicionar ao DOM
     document.body.appendChild(toast);
-    console.log('Toast added to DOM');
     
     // Remover após 5 segundos
     setTimeout(() => {
       if (toast.parentNode) {
         toast.parentNode.removeChild(toast);
-        console.log('Toast removed from DOM');
       }
     }, 5000);
-    
-    console.log('=== End showNotificationToast ===');
   }
 
   // API Methods
@@ -187,39 +144,29 @@ export class NotificationService {
 
   // Load initial data
   public loadNotifications(): void {
-    console.log('=== loadNotifications ===');
-    
     this.getNotifications().subscribe({
       next: (notifications) => {
-        console.log('Notifications loaded from API:', notifications);
         this.notificationsSubject.next(notifications);
       },
       error: (error) => {
-        console.error('Error loading notifications:', error);
+        // Error loading notifications
       }
     });
 
     this.getUnreadCount().subscribe({
       next: (response) => {
-        console.log('Unread count loaded from API:', response.count);
         this.unreadCountSubject.next(response.count);
       },
       error: (error) => {
-        console.error('Error loading unread count:', error);
+        // Error loading unread count
       }
     });
-    
-    console.log('=== End loadNotifications ===');
   }
 
   // Manual methods for updating state
   public markNotificationAsRead(notificationId: string): void {
-    console.log('=== markNotificationAsRead ===');
-    console.log('Marking notification as read:', notificationId);
-    
     this.markAsRead(notificationId).subscribe({
       next: () => {
-        console.log('Notification marked as read successfully');
         const notifications = this.notificationsSubject.value.map(n => 
           n.id === notificationId ? { ...n, isRead: true, readAt: new Date().toISOString() } : n
         );
@@ -228,22 +175,16 @@ export class NotificationService {
         // Recalcular contador
         const unreadCount = notifications.filter(n => !n.isRead).length;
         this.unreadCountSubject.next(unreadCount);
-        console.log('Updated unread count:', unreadCount);
       },
       error: (error) => {
-        console.error('Error marking notification as read:', error);
+        // Error marking notification as read
       }
     });
-    
-    console.log('=== End markNotificationAsRead ===');
   }
 
   public markAllNotificationsAsRead(): void {
-    console.log('=== markAllNotificationsAsRead ===');
-    
     this.markAllAsRead().subscribe({
       next: () => {
-        console.log('All notifications marked as read successfully');
         const notifications = this.notificationsSubject.value.map(n => ({
           ...n,
           isRead: true,
@@ -251,21 +192,14 @@ export class NotificationService {
         }));
         this.notificationsSubject.next(notifications);
         this.unreadCountSubject.next(0);
-        console.log('Updated all notifications and set unread count to 0');
       },
       error: (error) => {
-        console.error('Error marking all notifications as read:', error);
+        // Error marking all notifications as read
       }
     });
-    
-    console.log('=== End markAllNotificationsAsRead ===');
   }
 
   public markNotificationAsUnread(notificationId: string): void {
-    console.log('=== markNotificationAsUnread ===');
-    console.log('Marking notification as unread:', notificationId);
-    
-    // Atualizar localmente primeiro para resposta imediata
     const notifications = this.notificationsSubject.value.map(n => 
       n.id === notificationId ? { ...n, isRead: false, readAt: undefined } : n
     );
@@ -274,16 +208,5 @@ export class NotificationService {
     // Recalcular contador
     const unreadCount = notifications.filter(n => !n.isRead).length;
     this.unreadCountSubject.next(unreadCount);
-    console.log('Updated unread count:', unreadCount);
-    
-    // TODO: Implementar API call para marcar como não lida se necessário
-    // this.http.put<void>(`${environment.apiUrl}/notifications/${notificationId}/mark-as-unread`, {}).subscribe({
-    //   error: (error) => {
-    //     console.error('Error marking notification as unread:', error);
-    //     // Reverter mudança local em caso de erro
-    //   }
-    // });
-    
-    console.log('=== End markNotificationAsUnread ===');
   }
 } 

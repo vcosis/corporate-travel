@@ -1,51 +1,40 @@
-import { HttpEvent, HttpHandlerFn, HttpRequest, HttpErrorResponse } from '@angular/common/http';
-import { inject } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import {
+  HttpRequest,
+  HttpHandler,
+  HttpEvent,
+  HttpInterceptor,
+  HttpErrorResponse
+} from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthService } from '../auth/auth.service';
 import { Router } from '@angular/router';
 
-export function AuthInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> {
-  const authService = inject(AuthService);
-  const router = inject(Router);
-  
-  const token = authService.getToken();
-  
-  if (token) {
-    const cloned = req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`
-      }
-    });
+@Injectable()
+export class AuthInterceptorInterceptor implements HttpInterceptor {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
+  intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+    const token = this.authService.getToken();
     
-    return next(cloned).pipe(
-      catchError((error: HttpErrorResponse) => {
-        console.log('AuthInterceptor - Error caught:', error.status, error.message);
-        
-        if (error.status === 401) {
-          console.log('AuthInterceptor - 401 Unauthorized detected, logging out user');
-          
-          // Limpar autenticação
-          authService.logout();
-          
-          // Redirecionar para login
-          console.log('AuthInterceptor - Redirecting to login page');
-          router.navigate(['/login']).then(() => {
-            console.log('AuthInterceptor - Successfully redirected to login');
-          }).catch(err => {
-            console.error('AuthInterceptor - Error redirecting to login:', err);
-          });
+    if (token) {
+      request = request.clone({
+        setHeaders: {
+          Authorization: `Bearer ${token}`
         }
-        
+      });
+    }
+
+    return next.handle(request).pipe(
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 401) {
+          this.authService.logout();
+          this.router.navigate(['/login']);
+        }
         return throwError(() => error);
       })
     );
   }
-  
-  return next(req).pipe(
-    catchError((error: HttpErrorResponse) => {
-      console.log('AuthInterceptor - Error caught (no token):', error.status, error.message);
-      return throwError(() => error);
-    })
-  );
 }

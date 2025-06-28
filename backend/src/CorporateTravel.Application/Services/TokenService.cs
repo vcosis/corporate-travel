@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Serilog;
 
 namespace CorporateTravel.Application.Services;
 
@@ -13,11 +14,13 @@ public class TokenService : ITokenService
 {
     private readonly IConfiguration _configuration;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly ILogger _logger;
 
     public TokenService(IConfiguration configuration, UserManager<ApplicationUser> userManager)
     {
         _configuration = configuration;
         _userManager = userManager;
+        _logger = Log.ForContext<TokenService>();
     }
 
     public async Task<string> GenerateTokenAsync(ApplicationUser user)
@@ -27,9 +30,8 @@ public class TokenService : ITokenService
 
         var roles = await _userManager.GetRolesAsync(user);
         
-        Console.WriteLine($"=== TokenService.GenerateTokenAsync ===");
-        Console.WriteLine($"User: {user.UserName} (ID: {user.Id})");
-        Console.WriteLine($"Roles: [{string.Join(", ", roles)}]");
+        _logger.Debug("Generating token for user - User: {UserName} (ID: {UserId}), Roles: {Roles}", 
+            user.UserName, user.Id, roles);
         
         var claims = new List<Claim>
         {
@@ -45,11 +47,9 @@ public class TokenService : ITokenService
         foreach (var role in roles)
         {
             claims.Add(new Claim(ClaimTypes.Role, role));
-            Console.WriteLine($"Added role claim: {role}");
         }
 
-        Console.WriteLine($"Total claims: {claims.Count}");
-        Console.WriteLine($"=== End TokenService.GenerateTokenAsync ===");
+        _logger.Debug("Token generated with {ClaimCount} claims", claims.Count);
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -87,8 +87,9 @@ public class TokenService : ITokenService
             var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out _);
             return principal;
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.Warning(ex, "Token validation failed");
             return null;
         }
     }

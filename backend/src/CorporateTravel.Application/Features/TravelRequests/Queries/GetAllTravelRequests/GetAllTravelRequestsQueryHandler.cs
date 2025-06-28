@@ -5,6 +5,7 @@ using MediatR;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace CorporateTravel.Application.Features.TravelRequests.Queries.GetAllTravelRequests;
 
@@ -12,11 +13,13 @@ public class GetAllTravelRequestsQueryHandler : IRequestHandler<GetAllTravelRequ
 {
     private readonly ITravelRequestRepository _repository;
     private readonly IMapper _mapper;
+    private readonly ILogger _logger;
 
     public GetAllTravelRequestsQueryHandler(ITravelRequestRepository repository, IMapper mapper)
     {
         _repository = repository;
         _mapper = mapper;
+        _logger = Log.ForContext<GetAllTravelRequestsQueryHandler>();
     }
 
     public async Task<PaginatedResult<TravelRequestDto>> Handle(GetAllTravelRequestsQuery request, CancellationToken cancellationToken)
@@ -25,12 +28,8 @@ public class GetAllTravelRequestsQueryHandler : IRequestHandler<GetAllTravelRequ
         // Se tem role de User, mostra apenas suas próprias requisições
         var isManagerOrAdmin = request.UserRoles.Any(r => r == "Manager" || r == "Admin");
         
-        Console.WriteLine($"=== GetAllTravelRequestsQueryHandler ===");
-        Console.WriteLine($"UserId: {request.UserId}");
-        Console.WriteLine($"UserRoles: [{string.Join(", ", request.UserRoles)}]");
-        Console.WriteLine($"IsManagerOrAdmin: {isManagerOrAdmin}");
-        Console.WriteLine($"Filtering by userId: {(isManagerOrAdmin ? "null (all requests)" : request.UserId)}");
-        Console.WriteLine($"Additional filters: Period={request.Period}, SortBy={request.SortBy}, SortOrder={request.SortOrder}");
+        _logger.Debug("GetAllTravelRequests - UserId: {UserId}, UserRoles: {UserRoles}, IsManagerOrAdmin: {IsManagerOrAdmin}, Filtering by userId: {FilteringByUserId}, Additional filters: Period={Period}, SortBy={SortBy}, SortOrder={SortOrder}", 
+            request.UserId, request.UserRoles, isManagerOrAdmin, isManagerOrAdmin ? "null (all requests)" : request.UserId, request.Period, request.SortBy, request.SortOrder);
         
         var result = await _repository.GetPaginatedAsync(
             page: request.Page,
@@ -47,8 +46,7 @@ public class GetAllTravelRequestsQueryHandler : IRequestHandler<GetAllTravelRequ
             endDate: request.EndDate
         );
 
-        Console.WriteLine($"Repository returned {result.Items.Count()} items out of {result.TotalCount} total");
-        Console.WriteLine($"=== End GetAllTravelRequestsQueryHandler ===");
+        _logger.Debug("Repository returned {ItemCount} items out of {TotalCount} total", result.Items.Count(), result.TotalCount);
 
         var travelRequestDtos = _mapper.Map<IEnumerable<TravelRequestDto>>(result.Items);
 

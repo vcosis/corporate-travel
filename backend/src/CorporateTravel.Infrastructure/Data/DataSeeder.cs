@@ -7,6 +7,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Serilog;
 
 namespace CorporateTravel.Infrastructure.Data
 {
@@ -14,11 +15,14 @@ namespace CorporateTravel.Infrastructure.Data
     {
         public static async Task SeedRolesAndAdminAsync(IServiceProvider serviceProvider)
         {
-            var roleManager = serviceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
-            var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
+            using var scope = serviceProvider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
+            var logger = Log.ForContext<DataSeeder>();
 
-            string[] roleNames = { "Admin", "Manager", "User" };
+            // Create roles
+            var roleNames = new[] { "Admin", "Manager", "User" };
             IdentityResult roleResult;
 
             foreach (var roleName in roleNames)
@@ -27,6 +31,7 @@ namespace CorporateTravel.Infrastructure.Data
                 if (!roleExist)
                 {
                     roleResult = await roleManager.CreateAsync(new ApplicationRole(roleName));
+                    logger.Information("Created role: {RoleName}", roleName);
                 }
             }
 
@@ -118,6 +123,8 @@ namespace CorporateTravel.Infrastructure.Data
 
         private static async Task SeedSampleTravelRequestsAsync(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
+            var logger = Log.ForContext<DataSeeder>();
+            
             // Clear existing travel requests to ensure a clean slate on each run
             context.TravelRequests.RemoveRange(context.TravelRequests);
             await context.SaveChangesAsync();
@@ -127,7 +134,7 @@ namespace CorporateTravel.Infrastructure.Data
             
             if (!usersInUserRole.Any())
             {
-                Console.WriteLine("No users found with 'User' role. Skipping travel request seeding.");
+                logger.Information("No users found with 'User' role. Skipping travel request seeding.");
                 return;
             }
 
@@ -215,7 +222,8 @@ namespace CorporateTravel.Infrastructure.Data
             await context.TravelRequests.AddRangeAsync(sampleRequests);
             await context.SaveChangesAsync();
             
-            Console.WriteLine($"Created {sampleRequests.Count} travel requests for {usersInUserRole.Count} user(s) with 'User' role.");
+            logger.Information("Created {RequestCount} travel requests for {UserCount} user(s) with 'User' role.", 
+                sampleRequests.Count, usersInUserRole.Count);
         }
     }
 } 

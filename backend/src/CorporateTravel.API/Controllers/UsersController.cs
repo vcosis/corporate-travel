@@ -10,6 +10,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 using System.Linq;
+using Serilog;
 
 namespace CorporateTravel.API.Controllers;
 
@@ -19,10 +20,12 @@ namespace CorporateTravel.API.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly ILogger _logger;
 
     public UsersController(IMediator mediator)
     {
         _mediator = mediator;
+        _logger = Log.ForContext<UsersController>();
     }
 
     [HttpGet]
@@ -71,32 +74,28 @@ public class UsersController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id)
     {
-        Console.WriteLine($"=== Delete User API ===");
-        Console.WriteLine($"Received ID: '{id}'");
-        Console.WriteLine($"ID type: {id?.GetType()}");
-        Console.WriteLine($"ID length: {id?.Length}");
-        Console.WriteLine($"ID is null or empty: {string.IsNullOrEmpty(id)}");
+        _logger.Information("Delete user request - ID: {UserId}, Type: {IdType}, Length: {IdLength}, IsNullOrEmpty: {IsNullOrEmpty}", 
+            id, id?.GetType(), id?.Length, string.IsNullOrEmpty(id));
         
         // Verificar ModelState
         if (!ModelState.IsValid)
         {
-            Console.WriteLine("ModelState is invalid");
             var errors = ModelState.Values
                 .SelectMany(v => v.Errors)
                 .Select(e => e.ErrorMessage)
                 .ToList();
-            Console.WriteLine($"ModelState errors: {string.Join(", ", errors)}");
+            _logger.Warning("ModelState is invalid - Errors: {Errors}", errors);
             return BadRequest(ModelState);
         }
         
         // Validar se o ID não está vazio
         if (string.IsNullOrEmpty(id))
         {
-            Console.WriteLine("ID is null or empty");
+            _logger.Warning("User ID is null or empty");
             return BadRequest("ID do usuário é obrigatório");
         }
         
-        Console.WriteLine($"Processing delete for ID: {id}");
+        _logger.Debug("Processing delete for user ID: {UserId}", id);
         
         var command = new DeleteUserCommand
         {
@@ -107,11 +106,12 @@ public class UsersController : ControllerBase
 
         if (!result.Succeeded)
         {
-            Console.WriteLine($"Delete failed. Errors: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+            _logger.Warning("Delete user failed - ID: {UserId}, Errors: {Errors}", 
+                id, string.Join(", ", result.Errors.Select(e => e.Description)));
             return BadRequest(result.Errors);
         }
 
-        Console.WriteLine("Delete successful");
+        _logger.Information("User deleted successfully - ID: {UserId}", id);
         return Ok();
     }
 } 

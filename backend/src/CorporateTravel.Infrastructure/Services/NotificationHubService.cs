@@ -2,64 +2,57 @@ using CorporateTravel.Application.Dtos;
 using CorporateTravel.Application.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 using CorporateTravel.Infrastructure.Hubs;
+using Serilog;
 
 namespace CorporateTravel.Infrastructure.Services;
 
 public class NotificationHubService : INotificationHub
 {
     private readonly IHubContext<NotificationHub> _hubContext;
+    private readonly ILogger _logger;
 
     public NotificationHubService(IHubContext<NotificationHub> hubContext)
     {
         _hubContext = hubContext;
+        _logger = Log.ForContext<NotificationHubService>();
     }
 
     public async Task SendNotificationToUserAsync(string userId, NotificationDto notification)
     {
-        Console.WriteLine($"=== NotificationHubService.SendNotificationToUserAsync ===");
-        Console.WriteLine($"UserId: {userId}");
-        Console.WriteLine($"Notification: {notification?.Title} - {notification?.Message}");
-        Console.WriteLine($"Notification ID: {notification?.Id}");
+        _logger.Debug("Sending notification to user - UserId: {UserId}, Notification: {Title} - {Message}, ID: {NotificationId}", 
+            userId, notification?.Title, notification?.Message, notification?.Id);
         
         // Validar se a notificação não é nula ou vazia
         if (notification == null)
         {
-            Console.WriteLine("ERROR: Notification is null, skipping send");
-            Console.WriteLine($"=== End NotificationHubService.SendNotificationToUserAsync (null notification) ===");
+            _logger.Warning("Notification is null, skipping send for user {UserId}", userId);
             return;
         }
         
         if (string.IsNullOrEmpty(notification.Title) || string.IsNullOrEmpty(notification.Message))
         {
-            Console.WriteLine("ERROR: Notification has empty title or message, skipping send");
-            Console.WriteLine($"=== End NotificationHubService.SendNotificationToUserAsync (empty notification) ===");
+            _logger.Warning("Notification has empty title or message, skipping send for user {UserId}", userId);
             return;
         }
         
         await _hubContext.Clients.Group($"user_{userId}").SendAsync("ReceiveNotification", notification);
-        Console.WriteLine($"Notification sent to group: user_{userId}");
-        Console.WriteLine($"=== End NotificationHubService.SendNotificationToUserAsync ===");
+        _logger.Debug("Notification sent to group: user_{UserId}", userId);
     }
 
     public async Task SendNotificationToGroupAsync(string groupName, object notification)
     {
-        Console.WriteLine($"=== NotificationHubService.SendNotificationToGroupAsync ===");
-        Console.WriteLine($"Group: {groupName}");
-        Console.WriteLine($"Notification: {notification}");
+        _logger.Debug("Sending notification to group - Group: {GroupName}, Notification: {Notification}", 
+            groupName, notification);
         
         await _hubContext.Clients.Group(groupName).SendAsync("ReceiveNotification", notification);
-        Console.WriteLine($"Notification sent to group: {groupName}");
-        Console.WriteLine($"=== End NotificationHubService.SendNotificationToGroupAsync ===");
+        _logger.Debug("Notification sent to group: {GroupName}", groupName);
     }
 
     public async Task UpdateUnreadCountAsync(string userId, int count)
     {
-        Console.WriteLine($"=== NotificationHubService.UpdateUnreadCountAsync ===");
-        Console.WriteLine($"UserId: {userId}");
-        Console.WriteLine($"Count: {count}");
+        _logger.Debug("Updating unread count - UserId: {UserId}, Count: {Count}", userId, count);
         
         await _hubContext.Clients.Group($"user_{userId}").SendAsync("UpdateUnreadCount", count);
-        Console.WriteLine($"Unread count updated for group: user_{userId}");
-        Console.WriteLine($"=== End NotificationHubService.UpdateUnreadCountAsync ===");
+        _logger.Debug("Unread count updated for group: user_{UserId}", userId);
     }
 } 

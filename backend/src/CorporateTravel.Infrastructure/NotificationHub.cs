@@ -1,49 +1,49 @@
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
+using Serilog;
 
 namespace CorporateTravel.Infrastructure.Hubs;
 
 public class NotificationHub : Hub
 {
+    private readonly ILogger _logger;
+
+    public NotificationHub()
+    {
+        _logger = Log.ForContext<NotificationHub>();
+    }
+
     public override async Task OnConnectedAsync()
     {
-        Console.WriteLine($"=== NotificationHub.OnConnectedAsync ===");
-        Console.WriteLine($"ConnectionId: {Context.ConnectionId}");
-        
+        var connectionId = Context.ConnectionId;
         var user = Context.User;
-        Console.WriteLine($"User authenticated: {user?.Identity?.IsAuthenticated}");
+        
+        _logger.Information("SignalR connection established - ConnectionId: {ConnectionId}, User authenticated: {IsAuthenticated}", 
+            connectionId, user?.Identity?.IsAuthenticated);
         
         if (user?.Identity?.IsAuthenticated == true)
         {
             var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var roles = user.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
             
-            Console.WriteLine($"UserId: {userId}");
-            Console.WriteLine($"User roles: [{string.Join(", ", roles)}]");
+            _logger.Debug("Authenticated user - UserId: {UserId}, Roles: {Roles}", userId, roles);
             
             if (!string.IsNullOrEmpty(userId))
             {
                 // Verificar se já está no grupo antes de adicionar
                 var userGroup = $"user_{userId}";
-                Console.WriteLine($"Adding to user group: {userGroup}");
                 await Groups.AddToGroupAsync(Context.ConnectionId, userGroup);
-                Console.WriteLine($"Added to group: {userGroup}");
+                _logger.Debug("User added to group: {UserGroup}", userGroup);
                 
                 // Adicionar ao grupo de gestores se o usuário for Manager ou Admin
                 if (roles.Any(r => r == "Manager" || r == "Admin"))
                 {
-                    Console.WriteLine($"User has manager/admin role, adding to managers group");
                     await Groups.AddToGroupAsync(Context.ConnectionId, "managers");
-                    Console.WriteLine($"Added to group: managers");
-                }
-                else
-                {
-                    Console.WriteLine($"User does not have manager/admin role, skipping managers group");
+                    _logger.Debug("User added to managers group");
                 }
             }
         }
         
-        Console.WriteLine($"=== End NotificationHub.OnConnectedAsync ===");
         await base.OnConnectedAsync();
     }
 
@@ -57,7 +57,13 @@ public class NotificationHub : Hub
             {
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"user_{userId}");
                 await Groups.RemoveFromGroupAsync(Context.ConnectionId, "managers");
+                _logger.Debug("User removed from groups - UserId: {UserId}", userId);
             }
+        }
+        
+        if (exception != null)
+        {
+            _logger.Warning(exception, "SignalR connection disconnected with exception");
         }
         
         await base.OnDisconnectedAsync(exception);

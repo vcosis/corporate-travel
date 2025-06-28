@@ -34,51 +34,34 @@ export class AuthService {
     const token = localStorage.getItem('token');
     const userStr = localStorage.getItem('user');
     
-    console.log('=== loadUserFromStorage ===');
-    console.log('Token exists:', !!token);
-    console.log('User string:', userStr);
-    
     if (token && userStr) {
       // Verificar se o token não está expirado
       if (this.isTokenExpired()) {
-        console.log('Token expirado durante carregamento, limpando autenticação');
         this.clearAuth();
         return;
       }
       
       try {
         const user = JSON.parse(userStr);
-        console.log('Parsed user:', user);
-        console.log('User roles:', user.roles);
         this.currentUserSubject.next(user);
       } catch (e) {
-        console.error('Error parsing user from storage:', e);
         this.clearAuth();
       }
     }
-    console.log('=== End loadUserFromStorage ===');
   }
 
   login(email: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, { email, password })
       .pipe(
         map(response => {
-          console.log('=== Login Response ===');
-          console.log('Response:', response);
-          console.log('Roles:', response.roles);
-          console.log('Roles type:', typeof response.roles);
-          console.log('Roles length:', response.roles?.length);
-          
           localStorage.setItem('token', response.token);
           const user: User = {
             name: response.name,
             email: response.email,
             roles: response.roles
           };
-          console.log('User object to store:', user);
           localStorage.setItem('user', JSON.stringify(user));
           this.currentUserSubject.next(user);
-          console.log('=== End Login Response ===');
           return response;
         })
       );
@@ -105,7 +88,6 @@ export class AuthService {
   isTokenExpired(): boolean {
     const token = this.getToken();
     if (!token) {
-      console.log('isTokenExpired: Token não encontrado');
       return true;
     }
     
@@ -114,15 +96,8 @@ export class AuthService {
       const currentTime = Date.now() / 1000;
       const expirationTime = payload.exp;
       
-      console.log('isTokenExpired - Token info:', {
-        currentTime: currentTime,
-        expirationTime: expirationTime,
-        isExpired: expirationTime < currentTime
-      });
-      
       return expirationTime < currentTime;
     } catch (error) {
-      console.error('isTokenExpired - Erro ao verificar expiração do token:', error);
       return true;
     }
   }
@@ -137,7 +112,6 @@ export class AuthService {
     
     // Verificar se o token não está expirado
     if (this.isTokenExpired()) {
-      console.log('Token expirado, limpando autenticação');
       this.clearAuth();
       return false;
     }
@@ -147,28 +121,18 @@ export class AuthService {
 
   hasRole(role: string): boolean {
     const user = this.getCurrentUser();
-    const hasRole = user?.roles?.includes(role) || false;
-    console.log(`hasRole(${role}):`, {
-      user: user,
-      roles: user?.roles,
-      hasRole: hasRole
-    });
-    return hasRole;
+    return user?.roles?.includes(role) || false;
   }
 
   getCurrentUserId(): string | null {
     const token = this.getToken();
-    console.log('getCurrentUserId - token:', token ? 'exists' : 'null');
     if (!token) return null;
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      console.log('getCurrentUserId - payload:', payload);
       // Tenta os campos mais comuns para ID de usuário em JWT
       const userId = payload.nameid || payload.sub || payload.userId || payload.id || null;
-      console.log('getCurrentUserId - userId:', userId);
       return userId;
     } catch (error) {
-      console.error('getCurrentUserId - error parsing token:', error);
       return null;
     }
   }
@@ -180,12 +144,8 @@ export class AuthService {
 
   // Método de teste para simular token expirado
   testTokenExpiration(): void {
-    console.log('Testando expiração de token...');
     if (this.isTokenExpired()) {
-      console.log('Token está expirado, limpando autenticação');
       this.clearAuth();
-    } else {
-      console.log('Token ainda é válido');
     }
   }
 } 

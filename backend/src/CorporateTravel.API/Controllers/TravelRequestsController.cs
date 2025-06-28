@@ -16,6 +16,7 @@ using CorporateTravel.API.Attributes;
 using Microsoft.EntityFrameworkCore;
 using CorporateTravel.Infrastructure.Data;
 using System.Collections.Generic;
+using Serilog;
 
 namespace CorporateTravel.API.Controllers;
 
@@ -26,11 +27,13 @@ public class TravelRequestsController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly ApplicationDbContext _context;
+    private readonly ILogger _logger;
 
     public TravelRequestsController(IMediator mediator, ApplicationDbContext context)
     {
         _mediator = mediator;
         _context = context;
+        _logger = Log.ForContext<TravelRequestsController>();
     }
 
     [HttpGet]
@@ -39,16 +42,12 @@ public class TravelRequestsController : ControllerBase
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var userRoles = User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
         
-        Console.WriteLine($"=== TravelRequestsController.GetAll ===");
-        Console.WriteLine($"UserId from token: {userId}");
-        Console.WriteLine($"UserRoles from token: [{string.Join(", ", userRoles)}]");
-        Console.WriteLine($"All claims: {string.Join(", ", User.Claims.Select(c => $"{c.Type}={c.Value}"))}");
+        _logger.Debug("GetAll travel requests - UserId: {UserId}, UserRoles: {UserRoles}", userId, userRoles);
         
         query.UserId = userId;
         query.UserRoles = userRoles;
         
         var result = await _mediator.Send(query);
-        Console.WriteLine($"=== End TravelRequestsController.GetAll ===");
         return Ok(result);
     }
 

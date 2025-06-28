@@ -4,17 +4,37 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Security.Claims;
+using Serilog;
+using Serilog.Events;
+using CorporateTravel.API.Middleware;
 
 try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    // Debug: Log all arguments
-    Console.WriteLine($"Arguments received: [{string.Join(", ", args)}]");
+    // Configure Serilog
+    Log.Logger = new LoggerConfiguration()
+        .MinimumLevel.Information()
+        .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+        .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+        .Enrich.FromLogContext()
+        .Enrich.WithEnvironmentName()
+        .Enrich.WithThreadId()
+        .WriteTo.Console(
+            outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
+        .WriteTo.File(
+            path: "logs/corporate-travel-.txt",
+            rollingInterval: RollingInterval.Day,
+            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}",
+            retainedFileCountLimit: 30)
+        .WriteTo.Seq("http://localhost:5341")
+        .CreateLogger();
+
+    builder.Host.UseSerilog();
 
     // Verifica se o parâmetro --seed ou -s foi passado
     var seedDatabase = args.Contains("--seed") || args.Contains("-s");
-    Console.WriteLine($"Seed database flag: {seedDatabase}");
+    Log.Information("Seed database flag: {SeedDatabase}", seedDatabase);
 
     // Add services to the container.
     builder.Services.AddApplication();
@@ -61,16 +81,15 @@ try
             {
                 var accessToken = context.Request.Query["access_token"];
                 var path = context.HttpContext.Request.Path;
-                Console.WriteLine($"=== JWT OnMessageReceived ===");
-                Console.WriteLine($"Path: {path}");
-                Console.WriteLine($"Access token exists: {!string.IsNullOrEmpty(accessToken)}");
+                
+                Log.Debug("JWT OnMessageReceived - Path: {Path}, Access token exists: {HasToken}", 
+                    path, !string.IsNullOrEmpty(accessToken));
                 
                 if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/notificationhub"))
                 {
                     context.Token = accessToken;
-                    Console.WriteLine($"Token set for SignalR connection");
+                    Log.Debug("Token set for SignalR connection");
                 }
-                Console.WriteLine($"=== End JWT OnMessageReceived ===");
                 return Task.CompletedTask;
             },
             OnChallenge = context =>
@@ -82,13 +101,14 @@ try
             },
             OnTokenValidated = context =>
             {
-                Console.WriteLine($"=== JWT Token Validated ===");
-                Console.WriteLine($"User ID: {context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value}");
-                Console.WriteLine($"User Email: {context.Principal?.FindFirst(ClaimTypes.Email)?.Value}");
-                Console.WriteLine($"User Name: {context.Principal?.FindFirst(ClaimTypes.Name)?.Value}");
+                var userId = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userEmail = context.Principal?.FindFirst(ClaimTypes.Email)?.Value;
+                var userName = context.Principal?.FindFirst(ClaimTypes.Name)?.Value;
                 var roles = context.Principal?.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
-                Console.WriteLine($"User Roles: [{string.Join(", ", roles ?? new List<string>())}]");
-                Console.WriteLine($"=== End JWT Token Validated ===");
+                
+                Log.Debug("JWT Token Validated - User ID: {UserId}, Email: {Email}, Name: {Name}, Roles: {Roles}", 
+                    userId, userEmail, userName, roles);
+                
                 return Task.CompletedTask;
             }
         };
@@ -102,7 +122,7 @@ try
         options.KeepAliveInterval = TimeSpan.FromSeconds(15);
     });
 
-    Console.WriteLine("SignalR services added to DI container");
+    Log.Information("SignalR services added to DI container");
 
     builder.Services.AddControllers();
 
@@ -115,36 +135,41 @@ try
             var services = scope.ServiceProvider;
             try
             {
-                Console.WriteLine("Rodando seed do banco de dados...");
+                Log.Information("Running database seed...");
                 await CorporateTravel.Infrastructure.Data.DataSeeder.SeedRolesAndAdminAsync(services);
-                Console.WriteLine("Seed concluído com sucesso.");
+                Log.Information("Database seed completed successfully.");
             }
             catch (Exception ex)
             {
-                var logger = services.GetRequiredService<ILogger<Program>>();
-                logger.LogError(ex, "Erro ao rodar o seed.");
-                Console.WriteLine($"Erro ao rodar o seed: {ex}");
+                Log.Error(ex, "Error running database seed.");
             }
         }
-
     }
 
     // Pipeline normal da aplicação
     app.UseCors("AllowAngularApp");
     app.UseHttpsRedirection();
+    
+    // Add request logging middleware
+    app.UseMiddleware<RequestLoggingMiddleware>();
+    
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapControllers();
     app.MapHub<CorporateTravel.Infrastructure.Hubs.NotificationHub>("/notificationhub");
 
-    Console.WriteLine("Aplicação iniciada normalmente!");
+    Log.Information("Application started successfully!");
 
     app.Run();
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"Exceção global capturada: {ex}");
+    Log.Fatal(ex, "Application terminated unexpectedly");
     throw;
+}
+finally
+{
+    Log.CloseAndFlush();
 }
 
 // O record deve ficar fora do try/catch

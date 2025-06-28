@@ -7,6 +7,7 @@ using CorporateTravel.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using CorporateTravel.Infrastructure.Hubs;
+using Serilog;
 
 namespace CorporateTravel.Infrastructure.Services;
 
@@ -16,6 +17,7 @@ public class NotificationService : INotificationService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly INotificationHub _notificationHub;
     private readonly IMapper _mapper;
+    private readonly ILogger _logger;
 
     public NotificationService(
         ApplicationDbContext context,
@@ -27,6 +29,7 @@ public class NotificationService : INotificationService
         _userManager = userManager;
         _notificationHub = notificationHub;
         _mapper = mapper;
+        _logger = Log.ForContext<NotificationService>();
     }
 
     public async Task<NotificationDto> CreateNotificationAsync(string title, string message, NotificationType type, Guid recipientId, string? relatedEntityId = null, string? relatedEntityType = null)
@@ -148,35 +151,30 @@ public class NotificationService : INotificationService
 
     public async Task SendNotificationToManagersAsync(string title, string message, NotificationType type, string? relatedEntityId = null, string? relatedEntityType = null)
     {
-        Console.WriteLine($"=== NotificationService.SendNotificationToManagersAsync ===");
-        Console.WriteLine($"Title: {title}");
-        Console.WriteLine($"Message: {message}");
-        Console.WriteLine($"Type: {type}");
-        Console.WriteLine($"RelatedEntityId: {relatedEntityId}");
-        Console.WriteLine($"RelatedEntityType: {relatedEntityType}");
+        _logger.Information("Sending notification to managers - Title: {Title}, Type: {Type}, RelatedEntity: {RelatedEntityType}/{RelatedEntityId}", 
+            title, type, relatedEntityType, relatedEntityId);
         
         // Buscar todos os usuários com role Manager ou Admin
         var managerUsers = await _userManager.GetUsersInRoleAsync("Manager");
         var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
         var allManagers = managerUsers.Union(adminUsers).Distinct().ToList();
 
-        Console.WriteLine($"Manager users found: {managerUsers.Count}");
-        Console.WriteLine($"Admin users found: {adminUsers.Count}");
-        Console.WriteLine($"Total unique managers: {allManagers.Count}");
+        _logger.Debug("Found {ManagerCount} managers and {AdminCount} admins, total unique: {TotalCount}", 
+            managerUsers.Count, adminUsers.Count, allManagers.Count);
         
         // Log detalhado de cada manager
         foreach (var manager in allManagers)
         {
-            Console.WriteLine($"Manager: {manager.UserName} (ID: {manager.Id})");
+            _logger.Debug("Manager: {UserName} (ID: {UserId})", manager.UserName, manager.Id);
         }
 
         foreach (var manager in allManagers)
         {
-            Console.WriteLine($"Creating notification for manager: {manager.UserName} (ID: {manager.Id})");
+            _logger.Debug("Creating notification for manager: {UserName} (ID: {UserId})", manager.UserName, manager.Id);
             var notification = await CreateNotificationAsync(title, message, type, manager.Id, relatedEntityId, relatedEntityType);
-            Console.WriteLine($"Notification created with ID: {notification.Id}");
+            _logger.Debug("Notification created with ID: {NotificationId}", notification.Id);
         }
 
-        Console.WriteLine($"=== End NotificationService.SendNotificationToManagersAsync ===");
+        _logger.Information("Notification sent to {ManagerCount} managers", allManagers.Count);
     }
 } 
