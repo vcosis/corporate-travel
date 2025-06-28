@@ -5,32 +5,20 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Security.Claims;
 using Serilog;
-using Serilog.Events;
 using CorporateTravel.API.Middleware;
 
 try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    // Configure Serilog
-    Log.Logger = new LoggerConfiguration()
-        .MinimumLevel.Information()
-        .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-        .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    // Configure Serilog from appsettings.json
+    builder.Host.UseSerilog((context, services, configuration) => configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
         .Enrich.FromLogContext()
-        .Enrich.WithEnvironmentName()
-        .Enrich.WithThreadId()
-        .WriteTo.Console(
-            outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
-        .WriteTo.File(
-            path: "logs/corporate-travel-.txt",
-            rollingInterval: RollingInterval.Day,
-            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}",
-            retainedFileCountLimit: 30)
-        .WriteTo.Seq("http://localhost:5341")
-        .CreateLogger();
-
-    builder.Host.UseSerilog();
+        .WriteTo.Console()
+        .WriteTo.File("logs/corporate-travel-.txt", rollingInterval: RollingInterval.Day)
+        .WriteTo.Seq("http://localhost:5341"));
 
     // Verifica se o parâmetro --seed ou -s foi passado
     var seedDatabase = args.Contains("--seed") || args.Contains("-s");

@@ -34,13 +34,63 @@ O seed irá:
 
 ## Logging com Serilog
 
-Este projeto utiliza o Serilog para logging estruturado com as seguintes funcionalidades:
+Este projeto utiliza o Serilog para logging estruturado com configuração baseada em `appsettings.json`.
 
 ### Configuração
 
-- **Console**: Logs formatados no console para desenvolvimento
-- **Arquivo**: Logs salvos em `logs/corporate-travel-{data}.txt` com rotação diária
-- **Seq**: Logs enviados para Seq (http://localhost:5341) para análise estruturada
+O Serilog é configurado através dos arquivos `appsettings.json`:
+
+#### appsettings.json (Configuração Base)
+```json
+{
+  "Serilog": {
+    "MinimumLevel": {
+      "Default": "Information",
+      "Override": {
+        "Microsoft": "Warning",
+        "Microsoft.AspNetCore": "Warning",
+        "Microsoft.EntityFrameworkCore": "Warning"
+      }
+    },
+    "WriteTo": [
+      {
+        "Name": "Console",
+        "Args": {
+          "outputTemplate": "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"
+        }
+      },
+      {
+        "Name": "File",
+        "Args": {
+          "path": "logs/corporate-travel-.txt",
+          "rollingInterval": "Day",
+          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}",
+          "retainedFileCountLimit": 30
+        }
+      },
+      {
+        "Name": "Seq",
+        "Args": {
+          "serverUrl": "http://localhost:5341"
+        }
+      }
+    ],
+    "Enrich": ["FromLogContext", "WithEnvironmentName", "WithThreadId"]
+  }
+}
+```
+
+#### appsettings.Development.json
+- **Nível de log**: Information/Debug para desenvolvimento
+- **Console**: Habilitado com formatação detalhada
+- **Arquivo**: Logs salvos em `logs/corporate-travel-{data}.txt`
+- **Seq**: Logs enviados para análise estruturada
+
+#### appsettings.Production.json
+- **Nível de log**: Warning para reduzir volume
+- **Console**: Desabilitado
+- **Arquivo**: Com limite de tamanho e rotação
+- **Seq**: Para monitoramento em produção
 
 ### Middleware de Logging
 
@@ -80,6 +130,7 @@ _logger.Debug("Dados de debug: {Dados}", dados);
 ### Dependências
 
 - Serilog.AspNetCore
+- Serilog.Settings.Configuration
 - Serilog.Sinks.Console
 - Serilog.Sinks.File
 - Serilog.Sinks.Seq
