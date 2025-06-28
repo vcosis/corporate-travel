@@ -30,8 +30,6 @@ export class LoginComponent {
   loginForm: FormGroup;
   loginError = false;
   isLoading = false;
-  loading = false;
-  errorMessage = '';
 
   constructor(
     private fb: FormBuilder,
@@ -39,22 +37,24 @@ export class LoginComponent {
     private router: Router
   ) {
     this.loginForm = this.fb.group({
-      email: ['admin@corporatetravel.com', [Validators.required, Validators.email]],
-      password: ['Admin@123', Validators.required]
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', Validators.required]
     });
   }
 
   onSubmit(): void {
     if (this.loginForm.valid) {
-      this.loading = true;
+      this.isLoading = true;
+      this.loginError = false;
+      
       this.authService.login(this.loginForm.value.email, this.loginForm.value.password).subscribe({
         next: (response) => {
-          this.loading = false;
+          this.isLoading = false;
           this.router.navigate(['/dashboard']);
         },
         error: (error) => {
-          this.loading = false;
-          this.errorMessage = 'Email ou senha inválidos';
+          this.isLoading = false;
+          this.loginError = true;
           console.error('Login error:', error);
         }
       });

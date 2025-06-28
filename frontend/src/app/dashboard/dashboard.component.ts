@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
 import { DashboardService, DashboardStats } from './dashboard.service';
 import { TravelRequest } from '../travel-requests/travel-request.service';
@@ -32,7 +32,9 @@ import { ThemeService } from '../core/theme.service';
   styleUrls: ['./dashboard.scss'],
 })
 export class DashboardComponent implements OnInit, OnDestroy {
+  @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
   private subscription: Subscription = new Subscription();
+  showChart = true;
 
   public pieChartOptions: ChartConfiguration['options'] = {
     responsive: true,
@@ -93,14 +95,30 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private dashboardService: DashboardService,
     private snackBar: MatSnackBar,
     private breadcrumbService: BreadcrumbService,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.initializeBreadcrumb();
     this.loadDashboardData();
     this.themeService.theme$.subscribe(() => {
-      this.updatePieChart();
+      // Forçar recriação completa do gráfico
+      this.showChart = false;
+      this.cdr.detectChanges();
+      
+      setTimeout(() => {
+        this.updatePieChart();
+        this.showChart = true;
+        this.cdr.detectChanges();
+        
+        // Forçar update do gráfico após recriação
+        setTimeout(() => {
+          if (this.chart && this.chart.chart) {
+            this.chart.chart.update('none');
+          }
+        }, 100);
+      }, 50);
     });
   }
 
@@ -156,11 +174,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   private updatePieChart(): void {
-    const styles = getComputedStyle(document.documentElement);
-    const textColor = styles.getPropertyValue('--text-primary').trim() || '#212121';
-    const backgroundColor = styles.getPropertyValue('--card-color').trim() || '#ffffff';
-    const borderColor = styles.getPropertyValue('--divider-color').trim() || '#e0e0e0';
     const isDarkMode = document.body.classList.contains('dark-mode');
+    console.log('updatePieChart - Dark mode:', isDarkMode);
+
+    // Definir cores específicas para modo escuro
+    const legendColor = isDarkMode ? '#ffffff' : '#212121';
+    const tooltipBg = isDarkMode ? '#424242' : '#ffffff';
+    const tooltipTextColor = isDarkMode ? '#ffffff' : '#212121';
+    const borderColor = isDarkMode ? '#424242' : '#ffffff';
+
+    console.log('updatePieChart - Colors:', {
+      legendColor,
+      tooltipBg,
+      tooltipTextColor,
+      borderColor
+    });
 
     this.pieChartData = {
       labels: ['Pendente', 'Aprovado', 'Rejeitado'],
@@ -168,20 +196,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
         data: [this.stats.pending, this.stats.approved, this.stats.rejected],
         backgroundColor: this.getStatusColors(),
         borderWidth: 2,
-        borderColor: isDarkMode ? '#424242' : '#ffffff'
+        borderColor: borderColor
       }]
     };
 
     this.pieChartOptions = {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         legend: {
           display: true,
           position: 'top',
           labels: {
-            color: textColor,
+            color: legendColor,
             font: {
-              size: 12
+              size: 12,
+              weight: 'bold'
             },
             padding: 20,
             usePointStyle: true,
@@ -189,10 +219,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
           }
         },
         tooltip: {
-          backgroundColor: isDarkMode ? '#424242' : '#ffffff',
-          titleColor: isDarkMode ? '#ffffff' : '#212121',
-          bodyColor: isDarkMode ? '#ffffff' : '#212121',
-          borderColor: borderColor,
+          backgroundColor: tooltipBg,
+          titleColor: tooltipTextColor,
+          bodyColor: tooltipTextColor,
+          borderColor: isDarkMode ? '#666666' : '#e0e0e0',
           borderWidth: 1,
           cornerRadius: 8,
           displayColors: true,
@@ -206,6 +236,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
         }
       }
     };
+
+    console.log('updatePieChart - Updated chart options');
   }
 
   getStatusClass(status: string): string {

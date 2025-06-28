@@ -208,6 +208,28 @@ body.dark-mode ::ng-deep .chart-container {
   .chartjs-legend-item {
     color: var(--text-primary) !important;
   }
+
+  // Garantir que os labels da legenda sejam sempre visíveis
+  .chartjs-legend-item-text {
+    color: #ffffff !important;
+    font-weight: 500 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  // Melhorar a visibilidade dos tooltips
+  .chartjs-tooltip-key {
+    background-color: var(--text-primary) !important;
+  }
+
+  .chartjs-tooltip-value {
+    color: #ffffff !important;
+    font-weight: 500 !important;
+  }
+
+  // Garantir que o canvas tenha contraste adequado
+  canvas {
+    filter: brightness(1.1) contrast(1.1);
+  }
 }
 
 .recent-activity {

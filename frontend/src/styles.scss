@@ -523,13 +523,14 @@ body.dark-mode .status-badge.status-rejected {
 
 /* Dark mode styles for Chart.js */
 body.dark-mode canvas {
-  filter: brightness(1.1);
+  filter: brightness(1.1) contrast(1.1);
 }
 
 body.dark-mode .chartjs-tooltip {
   background-color: var(--surface-color) !important;
   border: 1px solid var(--divider-color) !important;
   color: var(--text-primary) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
 }
 
 body.dark-mode .chartjs-legend {
@@ -541,7 +542,9 @@ body.dark-mode .chartjs-legend-item {
 }
 
 body.dark-mode .chartjs-legend-item-text {
-  color: var(--text-primary) !important;
+  color: #ffffff !important;
+  font-weight: 500 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
 }
 
 /* Garantir que os tooltips do Chart.js sejam visíveis no modo escuro */
@@ -550,5 +553,14 @@ body.dark-mode .chartjs-tooltip-key {
 }
 
 body.dark-mode .chartjs-tooltip-value {
-  color: var(--text-primary) !important;
+  color: #ffffff !important;
+  font-weight: 500 !important;
+}
+
+/* Remover qualquer regra global que afete ambos os modos para Chart.js */
+.chartjs-legend-item-text,
+.chartjs-tooltip-value {
+  color: unset !important;
+  font-weight: unset !important;
+  text-shadow: unset !important;
 }

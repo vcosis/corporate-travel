@@ -82,6 +82,7 @@
       <mat-card-content>
         <div class="chart-container">
           <canvas baseChart
+            *ngIf="showChart"
             [data]="pieChartData"
             [type]="pieChartType"
             [options]="pieChartOptions">

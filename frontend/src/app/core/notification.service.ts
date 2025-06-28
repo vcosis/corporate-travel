@@ -260,4 +260,30 @@ export class NotificationService {
     
     console.log('=== End markAllNotificationsAsRead ===');
   }
+
+  public markNotificationAsUnread(notificationId: string): void {
+    console.log('=== markNotificationAsUnread ===');
+    console.log('Marking notification as unread:', notificationId);
+    
+    // Atualizar localmente primeiro para resposta imediata
+    const notifications = this.notificationsSubject.value.map(n => 
+      n.id === notificationId ? { ...n, isRead: false, readAt: undefined } : n
+    );
+    this.notificationsSubject.next(notifications);
+    
+    // Recalcular contador
+    const unreadCount = notifications.filter(n => !n.isRead).length;
+    this.unreadCountSubject.next(unreadCount);
+    console.log('Updated unread count:', unreadCount);
+    
+    // TODO: Implementar API call para marcar como não lida se necessário
+    // this.http.put<void>(`${environment.apiUrl}/notifications/${notificationId}/mark-as-unread`, {}).subscribe({
+    //   error: (error) => {
+    //     console.error('Error marking notification as unread:', error);
+    //     // Reverter mudança local em caso de erro
+    //   }
+    // });
+    
+    console.log('=== End markNotificationAsUnread ===');
+  }
 } 

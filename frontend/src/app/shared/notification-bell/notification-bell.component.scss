@@ -205,6 +205,126 @@
   }
 }
 
+.no-notifications {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-secondary);
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .notification-menu {
+    width: 320px;
+  }
+
+  .notification-header {
+    padding: 10px 12px;
+
+    h3 {
+      font-size: 14px;
+    }
+
+    .mark-all-read-btn {
+      font-size: 10px;
+      padding: 2px 4px;
+    }
+  }
+
+  .notification-list {
+    max-height: 280px;
+  }
+
+  .notification-item {
+    padding: 8px 12px;
+
+    .notification-avatar-block {
+      width: 32px;
+      height: 32px;
+      margin-right: 8px;
+    }
+
+    .notification-avatar,
+    .notification-avatar-fallback {
+      width: 28px;
+      height: 28px;
+      font-size: 12px;
+    }
+
+    .notification-content {
+      .notification-main {
+        .notification-requester-name {
+          font-size: 12px;
+        }
+
+        .notification-title-text {
+          font-size: 12px;
+        }
+      }
+
+      .notification-message {
+        font-size: 11px;
+      }
+
+      .notification-time {
+        font-size: 10px;
+      }
+    }
+  }
+
+  .notification-route {
+    font-size: 11px;
+
+    .highlight {
+      font-size: 10px;
+    }
+
+    .arrow {
+      font-size: 11px;
+    }
+  }
+
+  .notification-footer {
+    padding: 8px 12px;
+
+    button {
+      font-size: 11px;
+      padding: 3px 8px;
+    }
+  }
+
+  .no-notifications {
+    padding: 30px 16px;
+
+    mat-icon {
+      font-size: 40px;
+      width: 40px;
+      height: 40px;
+      margin-bottom: 12px;
+    }
+
+    p {
+      font-size: 13px;
+    }
+  }
+}
+
 // Toast notifications
 .notification-toast {
   position: fixed;

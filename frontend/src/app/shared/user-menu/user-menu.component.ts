@@ -60,11 +60,6 @@ import { UserAvatarComponent } from '../user-avatar/user-avatar.component';
         <span>Perfil</span>
       </button>
 
-      <button mat-menu-item (click)="goToSettings()">
-        <mat-icon>settings</mat-icon>
-        <span>Configurações</span>
-      </button>
-
       <mat-divider></mat-divider>
 
       <div class="theme-toggle-container">
@@ -108,11 +103,6 @@ export class UserMenuComponent {
 
   goToProfile(): void {
     this.router.navigate(['/profile']);
-  }
-
-  goToSettings(): void {
-    // TODO: Implementar navegação para configurações
-    console.log('Navegar para configurações');
   }
 
   logout(): void {

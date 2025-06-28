@@ -39,6 +39,13 @@ export class AuthService {
     console.log('User string:', userStr);
     
     if (token && userStr) {
+      // Verificar se o token não está expirado
+      if (this.isTokenExpired()) {
+        console.log('Token expirado durante carregamento, limpando autenticação');
+        this.clearAuth();
+        return;
+      }
+      
       try {
         const user = JSON.parse(userStr);
         console.log('Parsed user:', user);
@@ -95,12 +102,47 @@ export class AuthService {
     return localStorage.getItem('token');
   }
 
+  isTokenExpired(): boolean {
+    const token = this.getToken();
+    if (!token) {
+      console.log('isTokenExpired: Token não encontrado');
+      return true;
+    }
+    
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Date.now() / 1000;
+      const expirationTime = payload.exp;
+      
+      console.log('isTokenExpired - Token info:', {
+        currentTime: currentTime,
+        expirationTime: expirationTime,
+        isExpired: expirationTime < currentTime
+      });
+      
+      return expirationTime < currentTime;
+    } catch (error) {
+      console.error('isTokenExpired - Erro ao verificar expiração do token:', error);
+      return true;
+    }
+  }
+
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;
   }
 
   isAuthenticated(): boolean {
-    return !!this.getToken();
+    const token = this.getToken();
+    if (!token) return false;
+    
+    // Verificar se o token não está expirado
+    if (this.isTokenExpired()) {
+      console.log('Token expirado, limpando autenticação');
+      this.clearAuth();
+      return false;
+    }
+    
+    return true;
   }
 
   hasRole(role: string): boolean {
@@ -134,5 +176,16 @@ export class AuthService {
   updateCurrentUser(updatedUser: User): void {
     this.currentUserSubject.next(updatedUser);
     localStorage.setItem('user', JSON.stringify(updatedUser));
+  }
+
+  // Método de teste para simular token expirado
+  testTokenExpiration(): void {
+    console.log('Testando expiração de token...');
+    if (this.isTokenExpired()) {
+      console.log('Token está expirado, limpando autenticação');
+      this.clearAuth();
+    } else {
+      console.log('Token ainda é válido');
+    }
   }
 } 

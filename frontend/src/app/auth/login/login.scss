@@ -95,6 +95,38 @@
   font-size: 0.9rem;
 }
 
+.demo-credentials h4 {
+  margin: 0 0 15px 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: white;
+}
+
+.credential-item {
+  margin-bottom: 15px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  border-left: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.credential-item:last-child {
+  margin-bottom: 0;
+}
+
+.credential-item h5 {
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #fff;
+}
+
+.credential-item p {
+  margin: 3px 0;
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
 .demo-credentials p {
   margin: 5px 0;
 }
