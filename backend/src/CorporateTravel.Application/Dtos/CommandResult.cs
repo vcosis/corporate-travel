@@ -20,7 +20,8 @@ public class CommandResult
         return new CommandResult
         {
             Succeeded = false,
-            Errors = errors.ToList()
+            Errors = errors.ToList(),
+            Message = errors.Length > 0 ? errors[0] : null
         };
     }
 } 

@@ -46,14 +46,20 @@ public class CreateTravelRequestCommandHandler : IRequestHandler<CreateTravelReq
 
         var createdRequest = await _repository.AddAsync(travelRequest);
 
-        // Enviar notificação para todos os gestores
-        await _notificationService.SendNotificationToManagersAsync(
-            title: "Nova Requisição de Viagem",
-            message: $"Uma nova requisição de viagem foi criada. Código: {createdRequest.RequestCode}. Origem: {request.Origin}, Destino: {request.Destination}",
-            type: NotificationType.Info,
-            relatedEntityId: createdRequest.Id.ToString(),
-            relatedEntityType: "TravelRequest"
-        );
+        try
+        {
+            await _notificationService.SendNotificationToManagersAsync(
+                title: "Nova Requisição de Viagem",
+                message: $"Uma nova requisição de viagem foi criada. Código: {createdRequest.RequestCode}. Origem: {request.Origin}, Destino: {request.Destination}",
+                type: NotificationType.Info,
+                relatedEntityId: createdRequest.Id.ToString(),
+                relatedEntityType: "TravelRequest"
+            );
+        }
+        catch
+        {
+            // Ignora exceções do serviço de notificação
+        }
 
         return _mapper.Map<TravelRequestDto>(createdRequest);
     }

@@ -22,6 +22,9 @@ public class TokenService : ITokenService
 
     public async Task<string> GenerateTokenAsync(ApplicationUser user)
     {
+        if (string.IsNullOrEmpty(user.Email))
+            throw new ArgumentException("User email cannot be null or empty");
+
         var roles = await _userManager.GetRolesAsync(user);
         
         Console.WriteLine($"=== TokenService.GenerateTokenAsync ===");
