@@ -1,20 +1,20 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatCardModule } from '@angular/material/card';
-import { MatTabsModule } from '@angular/material/tabs';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Subscription } from 'rxjs';
 import { NotificationService, Notification } from '../core/notification.service';
-import { TravelRequestApprovalDialogComponent } from '../travel-requests/travel-request-approval-dialog/travel-request-approval-dialog.component';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { TravelRequestService } from '../travel-requests/travel-request.service';
-import { BreadcrumbComponent, BreadcrumbItem } from '../shared/breadcrumb/breadcrumb.component';
-import { BreadcrumbService } from '../shared/breadcrumb/breadcrumb.service';
+import { TravelRequestDetailsDialogComponent } from '../travel-requests/travel-request-details-dialog/travel-request-details-dialog.component';
+import { BreadcrumbComponent } from '../shared/breadcrumb/breadcrumb.component';
+import { BreadcrumbService, BreadcrumbItem } from '../shared/breadcrumb/breadcrumb.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
@@ -110,7 +110,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   openTravelRequestApprovalDialog(travelRequestId: string): void {
     this.travelRequestService.getById(travelRequestId).subscribe({
       next: (travelRequest) => {
-        const dialogRef = this.dialog.open(TravelRequestApprovalDialogComponent, {
+        const dialogRef = this.dialog.open(TravelRequestDetailsDialogComponent, {
           data: { travelRequest },
           width: '600px',
           disableClose: false

@@ -25,7 +25,7 @@
           </div>
           <div class="info-row">
             <span class="label">Data da solicitação:</span>
-            <span class="value">{{ formatDateTime(travelRequest.createdAt) }}</span>
+            <span class="value">{{ travelRequest.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
           </div>
         </mat-card-content>
       </mat-card>
@@ -44,80 +44,34 @@
             <div class="status-info">
               <span class="label">Status:</span>
               <div class="status-value">
-                <mat-icon class="status-icon">{{ getStatusIcon(travelRequest.status) }}</mat-icon>
-                <span class="status-text">{{ travelRequest.status | titlecase }}</span>
+                <span class="status-text">{{ getStatusDescription(travelRequest.status) }}</span>
               </div>
             </div>
 
             <mat-divider></mat-divider>
 
-            <div class="route-info">
-              <div class="origin">
-                <mat-icon>location_on</mat-icon>
-                <div class="location-details">
-                  <span class="location-label">Origem</span>
-                  <span class="location-value">{{ travelRequest.origin }}</span>
-                </div>
+            <div class="flight-summary-row">
+              <div class="flight-col">
+                <div class="flight-date">{{ travelRequest.startDate | date:'EEE. dd MMM.' }}</div>
+                <div class="flight-city">{{ travelRequest.origin }}</div>
+                <div class="flight-label">Origem</div>
               </div>
-              
-              <div class="route-arrow">
+              <div class="flight-arrow">
                 <mat-icon>arrow_forward</mat-icon>
               </div>
-              
-              <div class="destination">
-                <mat-icon>location_on</mat-icon>
-                <div class="location-details">
-                  <span class="location-label">Destino</span>
-                  <span class="location-value">{{ travelRequest.destination }}</span>
-                </div>
+              <div class="flight-col">
+                <div class="flight-date">{{ travelRequest.endDate | date:'EEE. dd MMM.' }}</div>
+                <div class="flight-city">{{ travelRequest.destination }}</div>
+                <div class="flight-label">Destino</div>
               </div>
             </div>
 
             <mat-divider></mat-divider>
 
-            <div class="date-info">
-              <div class="date-row">
-                <div class="date-item">
-                  <span class="label">Data de início:</span>
-                  <span class="value">{{ formatDate(travelRequest.startDate) }}</span>
-                </div>
-                <div class="date-item">
-                  <span class="label">Data de fim:</span>
-                  <span class="value">{{ formatDate(travelRequest.endDate) }}</span>
-                </div>
-              </div>
-              <div class="duration">
-                <span class="label">Duração:</span>
-                <span class="value">{{ getDurationDays() }} dia{{ getDurationDays() !== 1 ? 's' : '' }}</span>
-              </div>
-            </div>
-
-            <mat-divider></mat-divider>
-
-            <div class="reason-section">
+            <div class="reason-section" style="margin-top: 24px;">
               <span class="label">Motivo da viagem:</span>
               <p class="reason-text">{{ travelRequest.reason }}</p>
             </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <!-- Informações de aprovação (se aplicável) -->
-      <mat-card *ngIf="travelRequest.approverId || travelRequest.approvalDate" class="info-card">
-        <mat-card-header>
-          <mat-card-title>
-            <mat-icon>admin_panel_settings</mat-icon>
-            Informações de Aprovação
-          </mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="info-row" *ngIf="travelRequest.approverId">
-            <span class="label">Aprovado por:</span>
-            <span class="value">{{ travelRequest.approver?.name || 'N/A' }}</span>
-          </div>
-          <div class="info-row" *ngIf="travelRequest.approvalDate">
-            <span class="label">Data de aprovação:</span>
-            <span class="value">{{ formatDateTime(travelRequest.approvalDate) }}</span>
           </div>
         </mat-card-content>
       </mat-card>
@@ -126,36 +80,28 @@
 
   <mat-dialog-actions class="dialog-actions">
     <div class="actions-container">
-      <button mat-button (click)="close()" [disabled]="loading">
-        Fechar
+      <button mat-button matButton="tonal" 
+              (click)="reject()" 
+              [disabled]="loadingApprove || loadingReject" 
+              *ngIf="canApprove && travelRequest.status.toLowerCase() === 'pending'"
+              class="action-button">
+        <div class="button-content">
+          <mat-spinner *ngIf="loadingReject" diameter="16" strokeWidth="2"></mat-spinner>
+          <mat-icon *ngIf="!loadingReject">cancel</mat-icon>
+          <span>Rejeitar</span>
+        </div>
       </button>
-      
-      <div class="approval-actions" *ngIf="canApprove && travelRequest.status.toLowerCase() === 'pending'">
-        <button mat-stroked-button 
-                (click)="reject()" 
-                [disabled]="loading">
-          <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
-          <mat-icon *ngIf="!loading">cancel</mat-icon>
-          Rejeitar
-        </button>
-        <button mat-stroked-button 
-                (click)="approve()" 
-                [disabled]="loading">
-          <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
-          <mat-icon *ngIf="!loading">check</mat-icon>
-          Aprovar
-        </button>
-      </div>
-      
-      <div class="status-message" *ngIf="!canApprove">
-        <mat-icon>info</mat-icon>
-        <span>Você não tem permissão para aprovar requisições de viagem.</span>
-      </div>
-      
-      <div class="status-message" *ngIf="travelRequest.status.toLowerCase() !== 'pending'">
-        <mat-icon>info</mat-icon>
-        <span>Esta requisição já foi {{ travelRequest.status.toLowerCase() === 'approved' ? 'aprovada' : 'rejeitada' }}.</span>
-      </div>
+      <button mat-button matButton="tonal" 
+              (click)="approve()" 
+              [disabled]="loadingApprove || loadingReject" 
+              *ngIf="canApprove && travelRequest.status.toLowerCase() === 'pending'"
+              class="action-button">
+        <div class="button-content">
+          <mat-spinner *ngIf="loadingApprove" diameter="16" strokeWidth="2"></mat-spinner>
+          <mat-icon *ngIf="!loadingApprove">check</mat-icon>
+          <span>Aprovar</span>
+        </div>
+      </button>
     </div>
   </mat-dialog-actions>
 </div> 

@@ -9,10 +9,11 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Subscription } from 'rxjs';
 import { NotificationService, Notification } from '../../core/notification.service';
-import { TravelRequestApprovalDialogComponent } from '../../travel-requests/travel-request-approval-dialog/travel-request-approval-dialog.component';
 import { TravelRequestService } from '../../travel-requests/travel-request.service';
+import { TravelRequestDetailsDialogComponent } from '../../travel-requests/travel-request-details-dialog/travel-request-details-dialog.component';
 
 @Component({
   selector: 'app-notification-bell',
@@ -27,7 +28,8 @@ import { TravelRequestService } from '../../travel-requests/travel-request.servi
     MatDividerModule,
     MatChipsModule,
     MatDialogModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './notification-bell.component.html',
   styleUrls: ['./notification-bell.component.scss']
@@ -93,7 +95,7 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
   openTravelRequestApprovalDialog(travelRequestId: string): void {
     this.travelRequestService.getById(travelRequestId).subscribe({
       next: (travelRequest) => {
-        const dialogRef = this.dialog.open(TravelRequestApprovalDialogComponent, {
+        const dialogRef = this.dialog.open(TravelRequestDetailsDialogComponent, {
           data: { travelRequest },
           width: '600px',
           disableClose: false

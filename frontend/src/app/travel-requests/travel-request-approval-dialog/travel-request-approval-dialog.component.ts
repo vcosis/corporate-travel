@@ -35,7 +35,8 @@ export interface TravelRequestApprovalDialogData {
 export class TravelRequestApprovalDialogComponent implements OnInit {
   travelRequest: TravelRequest;
   loading = false;
-  currentUser: any;
+  loadingApprove = false;
+  loadingReject = false;
   canApprove = false;
 
   constructor(
@@ -46,44 +47,45 @@ export class TravelRequestApprovalDialogComponent implements OnInit {
     private snackBar: MatSnackBar
   ) {
     this.travelRequest = data.travelRequest;
-    this.currentUser = this.authService.getCurrentUser();
   }
 
   ngOnInit(): void {
-    // Verificar se o usuário atual pode aprovar (gerente ou admin)
-    this.canApprove = this.currentUser?.roles?.some((role: string) => 
-      ['Manager', 'Admin'].includes(role)
-    ) || false;
+    this.checkPermissions();
+  }
+
+  private checkPermissions(): void {
+    // Apenas Admin e Manager podem aprovar/rejeitar
+    this.canApprove = this.authService.hasRole('Admin') || this.authService.hasRole('Manager');
   }
 
   approve(): void {
-    this.loading = true;
+    this.loadingApprove = true;
     this.travelRequestService.approve(this.travelRequest.id).subscribe({
       next: () => {
-        this.snackBar.open('Requisição de viagem aprovada com sucesso!', 'Fechar', { duration: 3000 });
-        this.dialogRef.close(true);
-        this.loading = false;
+        setTimeout(() => {
+          this.dialogRef.close('approved');
+          this.loadingApprove = false;
+        }, 900);
       },
-      error: (error) => {
-        console.error('Error approving travel request:', error);
-        this.snackBar.open('Erro ao aprovar requisição de viagem', 'Fechar', { duration: 3000 });
-        this.loading = false;
+      error: () => {
+        this.snackBar.open('Erro ao aprovar solicitação.', 'Fechar', { duration: 3000 });
+        this.loadingApprove = false;
       }
     });
   }
 
   reject(): void {
-    this.loading = true;
+    this.loadingReject = true;
     this.travelRequestService.reject(this.travelRequest.id).subscribe({
       next: () => {
-        this.snackBar.open('Requisição de viagem rejeitada', 'Fechar', { duration: 3000 });
-        this.dialogRef.close(true);
-        this.loading = false;
+        setTimeout(() => {
+          this.dialogRef.close('rejected');
+          this.loadingReject = false;
+        }, 900);
       },
-      error: (error) => {
-        console.error('Error rejecting travel request:', error);
-        this.snackBar.open('Erro ao rejeitar requisição de viagem', 'Fechar', { duration: 3000 });
-        this.loading = false;
+      error: () => {
+        this.snackBar.open('Erro ao rejeitar solicitação.', 'Fechar', { duration: 3000 });
+        this.loadingReject = false;
       }
     });
   }
@@ -92,59 +94,65 @@ export class TravelRequestApprovalDialogComponent implements OnInit {
     this.dialogRef.close();
   }
 
-  getStatusColor(status: string): string {
-    switch (status.toLowerCase()) {
+  getStatusColor(status: any): string {
+    if (status === null || status === undefined) return 'default';
+    
+    if (typeof status === 'object' && status !== null && 'name' in status) {
+      return this.getStatusColor(status.name);
+    }
+    
+    const value = String(status).toLowerCase();
+    switch (value) {
+      case '0':
       case 'pending':
         return 'warn';
+      case '1':
       case 'approved':
         return 'accent';
+      case '2':
       case 'rejected':
         return 'warn';
       default:
-        return 'primary';
+        return 'default';
     }
   }
 
   getStatusIcon(status: string): string {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return 'schedule';
+    switch ((status || '').toLowerCase()) {
       case 'approved':
+      case 'aprovado':
         return 'check_circle';
       case 'rejected':
+      case 'rejeitado':
         return 'cancel';
+      case 'pending':
+      case 'pendente':
       default:
-        return 'help';
+        return 'hourglass_empty';
     }
   }
 
-  formatDate(dateString: string): string {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-  }
-
-  formatDateTime(dateString: string): string {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-
-  getDurationDays(): number {
-    const startDate = new Date(this.travelRequest.startDate);
-    const endDate = new Date(this.travelRequest.endDate);
-    const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+  getStatusDescription(status: any): string {
+    if (status === null || status === undefined) return '-';
+    if (typeof status === 'object' && status !== null && 'name' in status) {
+      return this.getStatusDescription(status.name);
+    }
+    const value = String(status).toLowerCase();
+    switch (value) {
+      case '0':
+      case 'pending':
+      case 'pendente':
+        return 'Pendente';
+      case '1':
+      case 'approved':
+      case 'aprovado':
+        return 'Aprovado';
+      case '2':
+      case 'rejected':
+      case 'rejeitado':
+        return 'Rejeitado';
+      default:
+        return value;
+    }
   }
 } 
