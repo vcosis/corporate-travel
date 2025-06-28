@@ -20,7 +20,7 @@ namespace CorporateTravel.API.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly ILogger _logger;
+    private readonly Serilog.ILogger _logger;
 
     public UsersController(IMediator mediator)
     {

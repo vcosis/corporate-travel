@@ -4,7 +4,7 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app/app-routing-module';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { AuthInterceptor } from './app/core/auth-interceptor-interceptor';
+import { authInterceptor } from './app/core/auth-interceptor-interceptor';
 import { provideNativeDateAdapter } from '@angular/material/core';
 
 // Registrar controllers do Chart.js
@@ -14,7 +14,7 @@ Chart.register(...registerables);
 bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes),
-    provideHttpClient(withInterceptors([AuthInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor])),
     provideAnimations(),
     provideNativeDateAdapter()
   ]

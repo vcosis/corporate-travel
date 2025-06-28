@@ -45,4 +45,8 @@ export class ThemeService {
   getCurrentTheme(): Theme {
     return this.themeSubject.value;
   }
+
+  initializeTheme(): void {
+    this.loadTheme();
+  }
 } 

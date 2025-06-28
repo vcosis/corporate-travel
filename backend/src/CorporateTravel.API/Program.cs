@@ -5,7 +5,6 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Security.Claims;
 using Serilog;
-using CorporateTravel.API.Middleware;
 
 try
 {
@@ -14,11 +13,7 @@ try
     // Configure Serilog from appsettings.json
     builder.Host.UseSerilog((context, services, configuration) => configuration
         .ReadFrom.Configuration(context.Configuration)
-        .ReadFrom.Services(services)
-        .Enrich.FromLogContext()
-        .WriteTo.Console()
-        .WriteTo.File("logs/corporate-travel-.txt", rollingInterval: RollingInterval.Day)
-        .WriteTo.Seq("http://localhost:5341"));
+        .ReadFrom.Services(services));
 
     // Verifica se o parâmetro --seed ou -s foi passado
     var seedDatabase = args.Contains("--seed") || args.Contains("-s");
@@ -138,8 +133,8 @@ try
     app.UseCors("AllowAngularApp");
     app.UseHttpsRedirection();
     
-    // Add request logging middleware
-    app.UseMiddleware<RequestLoggingMiddleware>();
+    // Add Serilog request logging middleware
+    app.UseSerilogRequestLogging();
     
     app.UseAuthentication();
     app.UseAuthorization();

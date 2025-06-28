@@ -27,7 +27,7 @@ public class TravelRequestsController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly ApplicationDbContext _context;
-    private readonly ILogger _logger;
+    private readonly Serilog.ILogger _logger;
 
     public TravelRequestsController(IMediator mediator, ApplicationDbContext context)
     {

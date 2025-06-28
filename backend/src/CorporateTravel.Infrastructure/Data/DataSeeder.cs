@@ -19,7 +19,7 @@ namespace CorporateTravel.Infrastructure.Data
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
-            var logger = Log.ForContext<DataSeeder>();
+            var logger = Log.ForContext("Component", "DataSeeder");
 
             // Create roles
             var roleNames = new[] { "Admin", "Manager", "User" };
@@ -123,7 +123,7 @@ namespace CorporateTravel.Infrastructure.Data
 
         private static async Task SeedSampleTravelRequestsAsync(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
-            var logger = Log.ForContext<DataSeeder>();
+            var logger = Log.ForContext("Component", "DataSeeder");
             
             // Clear existing travel requests to ensure a clean slate on each run
             context.TravelRequests.RemoveRange(context.TravelRequests);

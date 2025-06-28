@@ -4,12 +4,12 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app-routing-module';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { AuthInterceptor } from './core/auth-interceptor-interceptor';
+import { authInterceptor } from './core/auth-interceptor-interceptor';
 
 bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes),
-    provideHttpClient(withInterceptors([AuthInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor])),
     provideAnimations()
   ]
 }).catch((err: unknown) => console.error(err)); 

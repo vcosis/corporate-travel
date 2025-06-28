@@ -16,6 +16,16 @@ ou
 dotnet run -s
 ```
 
+### Execução com Docker Compose (Recomendado)
+```bash
+docker-compose up -d
+```
+
+Isso irá iniciar:
+- PostgreSQL (porta 5432)
+- Seq - Log Aggregation (porta 5341)
+- Backend API (porta 5178)
+
 ## Parâmetros disponíveis
 
 - `--seed` ou `-s`: Executa o seed do banco de dados, criando usuários padrão e dados de exemplo
@@ -71,7 +81,7 @@ O Serilog é configurado através dos arquivos `appsettings.json`:
       {
         "Name": "Seq",
         "Args": {
-          "serverUrl": "http://localhost:5341"
+          "serverUrl": "http://seq:80"
         }
       }
     ],
@@ -92,14 +102,36 @@ O Serilog é configurado através dos arquivos `appsettings.json`:
 - **Arquivo**: Com limite de tamanho e rotação
 - **Seq**: Para monitoramento em produção
 
-### Middleware de Logging
+### Seq - Log Aggregation
 
-O projeto inclui um middleware personalizado (`RequestLoggingMiddleware`) que captura:
-- Todas as requisições HTTP
-- Tempo de resposta
-- Status codes
-- IP do cliente
-- Método HTTP e path
+O projeto inclui o Seq configurado no Docker Compose para análise de logs estruturados:
+
+- **URL**: http://localhost:5341
+- **Container**: `corporatetravel-seq`
+- **Persistência**: Volume Docker para manter dados entre reinicializações
+- **Health Check**: Verificação automática de saúde do serviço
+
+#### Benefícios do Seq:
+- **Análise em tempo real**: Visualização de logs estruturados
+- **Filtros avançados**: Busca por propriedades específicas
+- **Dashboards**: Criação de dashboards personalizados
+- **Alertas**: Configuração de alertas baseados em padrões de log
+- **Retenção**: Política de retenção configurável
+
+### Request Logging
+
+O projeto utiliza o `UseSerilogRequestLogging()` do Serilog.AspNetCore para capturar automaticamente:
+
+- **Todas as requisições HTTP** com método, path e status code
+- **Tempo de resposta** em milissegundos
+- **IP do cliente** e user agent
+- **Tamanho da requisição e resposta**
+- **Propriedades estruturadas** para análise no Seq
+
+#### Exemplo de log de requisição:
+```
+HTTP GET /api/travelrequests completed with 200 in 45ms
+```
 
 ### Níveis de Log
 
