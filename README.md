@@ -11,12 +11,13 @@ Sistema completo de gerenciamento de viagens corporativas com backend .NET Core 
 
 ### Execução com Docker Compose (Recomendado)
 
+#### Opção 1: Com Proxy Reverso (Produção)
 ```bash
 # Clone o repositório
 git clone <repository-url>
 cd corporate-travel
 
-# Inicie todos os serviços
+# Inicie todos os serviços com proxy reverso
 docker-compose up -d
 ```
 
@@ -24,10 +25,28 @@ Isso irá iniciar:
 - **PostgreSQL** (porta 5432) - Banco de dados
 - **Seq** (porta 5341) - Log aggregation e análise
 - **Backend API** (porta 5178) - API .NET Core
-- **Frontend** (porta 4200) - Aplicação Angular
+- **Frontend com Nginx** (porta 80) - Aplicação Angular com proxy reverso
+
+#### Opção 2: Desenvolvimento (Sem Proxy Reverso)
+```bash
+# Para desenvolvimento local sem proxy reverso
+docker-compose -f docker-compose.dev.yml up -d
+
+# Execute o frontend localmente
+cd frontend
+npm install
+ng serve
+```
 
 ### Acessos
 
+#### Com Proxy Reverso (Produção)
+- **Frontend**: http://localhost
+- **Backend API**: http://localhost/api
+- **Seq Logs**: http://localhost:5341
+- **PostgreSQL**: localhost:5432
+
+#### Desenvolvimento (Sem Proxy Reverso)
 - **Frontend**: http://localhost:4200
 - **Backend API**: http://localhost:5178
 - **Seq Logs**: http://localhost:5341
@@ -50,8 +69,12 @@ corporate-travel/
 │   │   ├── app/           # Componentes e serviços
 │   │   ├── environments/  # Configurações de ambiente
 │   │   └── theme/         # Temas e estilos
+│   ├── Dockerfile         # Build do frontend
+│   ├── nginx.conf         # Configuração do proxy reverso
 │   └── package.json
-└── docker-compose.yml     # Orquestração dos serviços
+├── docker-compose.yml     # Orquestração com proxy reverso
+├── docker-compose.dev.yml # Orquestração para desenvolvimento
+└── README.md
 ```
 
 ## 🔧 Desenvolvimento Local
@@ -85,6 +108,24 @@ ng serve
 # Executar testes
 ng test
 ```
+
+## 🌐 Proxy Reverso
+
+O sistema inclui um proxy reverso Nginx que oferece:
+
+### Benefícios
+- **Unificação de portas**: Acesso através de uma única porta (80)
+- **Segurança**: Headers de segurança configurados
+- **Performance**: Compressão gzip e cache de assets estáticos
+- **Rate Limiting**: Proteção contra ataques de força bruta
+- **CORS**: Configuração automática de CORS
+- **WebSocket**: Suporte para SignalR
+
+### Configuração
+- **Nginx**: Configurado em `frontend/nginx.conf`
+- **Rate Limiting**: 10 req/s para API, 5 req/s para login
+- **Cache**: Assets estáticos com cache de 1 ano
+- **Compressão**: Gzip habilitado para melhor performance
 
 ## 👥 Usuários Padrão
 
@@ -131,6 +172,7 @@ Acesse http://localhost:5341 para:
 ### DevOps
 - **Docker** - Containerização
 - **Docker Compose** - Orquestração
+- **Nginx** - Proxy reverso
 - **Seq** - Log aggregation
 
 ## 🔒 Segurança
@@ -140,6 +182,8 @@ Acesse http://localhost:5341 para:
 - CORS configurado
 - Validação de entrada
 - Logging de auditoria
+- Rate limiting
+- Headers de segurança
 
 ## 📝 API Documentation
 
@@ -164,16 +208,17 @@ ng test
 
 ## 📦 Deploy
 
-### Produção
+### Produção com Proxy Reverso
 ```bash
 # Build e deploy com Docker
-docker-compose -f docker-compose.prod.yml up -d
+docker-compose up -d
 ```
 
 ### Desenvolvimento
 ```bash
-# Execução local
-docker-compose up -d
+# Execução local sem proxy reverso
+docker-compose -f docker-compose.dev.yml up -d
+cd frontend && ng serve
 ```
 
 ## 🤝 Contribuição

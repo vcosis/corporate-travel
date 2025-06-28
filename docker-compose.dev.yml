@@ -2,7 +2,7 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
-    container_name: corporatetravel-postgres
+    container_name: corporatetravel-postgres-dev
     environment:
       - POSTGRES_DB=corporatetravel
       - POSTGRES_USER=postgres
@@ -25,7 +25,7 @@ services:
     build:
       context: ./backend
       dockerfile: src/CorporateTravel.API/Dockerfile
-    container_name: corporatetravel-backend
+    container_name: corporatetravel-backend-dev
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=corporatetravel;Username=postgres;Password=postgres
@@ -41,28 +41,9 @@ services:
       - corporatetravel-network
     restart: unless-stopped
 
-  # Frontend with Nginx Reverse Proxy
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: corporatetravel-frontend
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-    networks:
-      - corporatetravel-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
   seq:
     image: datalust/seq:latest
-    container_name: corporatetravel-seq
+    container_name: corporatetravel-seq-dev
     environment:
       - ACCEPT_EULA=Y
     ports:
