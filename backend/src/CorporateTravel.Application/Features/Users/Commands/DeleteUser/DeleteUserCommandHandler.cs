@@ -25,6 +25,13 @@ public class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand, Ident
         
         try
         {
+            // Validar se o ID não é nulo ou vazio
+            if (string.IsNullOrWhiteSpace(request.Id))
+            {
+                Console.WriteLine("Invalid user ID provided");
+                return IdentityResult.Failed(new IdentityError { Description = "ID do usuário inválido" });
+            }
+            
             var user = await _userManager.FindByIdAsync(request.Id);
             Console.WriteLine($"User found: {user != null}");
             

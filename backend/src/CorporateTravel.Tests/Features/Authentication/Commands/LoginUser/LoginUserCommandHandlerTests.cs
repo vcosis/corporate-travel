@@ -7,6 +7,11 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Moq;
 using System.Security.Claims;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CorporateTravel.Tests.Features.Authentication.Commands.LoginUser;
 
@@ -20,7 +25,15 @@ public class LoginUserCommandHandlerTests
     {
         var userStoreMock = new Mock<IUserStore<ApplicationUser>>();
         _mockUserManager = new Mock<UserManager<ApplicationUser>>(
-            userStoreMock.Object, null, null, null, null, null, null, null, null);
+            userStoreMock.Object, 
+            new Mock<IOptions<IdentityOptions>>().Object, 
+            new Mock<IPasswordHasher<ApplicationUser>>().Object, 
+            new List<IUserValidator<ApplicationUser>>(), 
+            new List<IPasswordValidator<ApplicationUser>>(), 
+            new Mock<ILookupNormalizer>().Object, 
+            new Mock<IdentityErrorDescriber>().Object, 
+            new Mock<IServiceProvider>().Object, 
+            new Mock<ILogger<UserManager<ApplicationUser>>>().Object);
 
         _mockTokenService = new Mock<ITokenService>();
         _handler = new LoginUserCommandHandler(_mockUserManager.Object, _mockTokenService.Object);

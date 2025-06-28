@@ -127,7 +127,7 @@ public class TravelRequestRepository : ITravelRequestRepository
                 tr.Origin.ToLower().Contains(searchLower) ||
                 tr.Destination.ToLower().Contains(searchLower) ||
                 tr.Reason.ToLower().Contains(searchLower) ||
-                (tr.RequestingUser != null && tr.RequestingUser.UserName.ToLower().Contains(searchLower))
+                (tr.RequestingUser != null && tr.RequestingUser.UserName != null && tr.RequestingUser.UserName.ToLower().Contains(searchLower))
             );
         }
 
@@ -146,6 +146,7 @@ public class TravelRequestRepository : ITravelRequestRepository
         {
             query = query.Where(tr => 
                 tr.RequestingUser != null && 
+                tr.RequestingUser.UserName != null &&
                 tr.RequestingUser.UserName.ToLower().Contains(requestingUser.ToLower())
             );
         }
@@ -155,6 +156,7 @@ public class TravelRequestRepository : ITravelRequestRepository
         {
             query = query.Where(tr => 
                 tr.Approver != null && 
+                tr.Approver.UserName != null &&
                 tr.Approver.UserName.ToLower().Contains(approver.ToLower())
             );
         }
@@ -212,10 +214,10 @@ public class TravelRequestRepository : ITravelRequestRepository
         return sortBy?.ToLower() switch
         {
             "startdate" => isDescending ? query.OrderByDescending(tr => tr.StartDate) : query.OrderBy(tr => tr.StartDate),
-            "requestingusername" => isDescending ? query.OrderByDescending(tr => tr.RequestingUser.UserName) : query.OrderBy(tr => tr.RequestingUser.UserName),
+            "requestingusername" => isDescending ? query.OrderByDescending(tr => tr.RequestingUser != null ? tr.RequestingUser.UserName ?? string.Empty : string.Empty) : query.OrderBy(tr => tr.RequestingUser != null ? tr.RequestingUser.UserName ?? string.Empty : string.Empty),
             "requestcode" => isDescending ? query.OrderByDescending(tr => tr.RequestCode) : query.OrderBy(tr => tr.RequestCode),
             "approvaldate" => isDescending ? query.OrderByDescending(tr => tr.ApprovalDate) : query.OrderBy(tr => tr.ApprovalDate),
-            "approvername" => isDescending ? query.OrderByDescending(tr => tr.Approver.UserName) : query.OrderBy(tr => tr.Approver.UserName),
+            "approvername" => isDescending ? query.OrderByDescending(tr => tr.Approver != null ? tr.Approver.UserName ?? string.Empty : string.Empty) : query.OrderBy(tr => tr.Approver != null ? tr.Approver.UserName ?? string.Empty : string.Empty),
             _ => isDescending ? query.OrderByDescending(tr => tr.CreatedAt) : query.OrderBy(tr => tr.CreatedAt)
         };
     }

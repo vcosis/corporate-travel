@@ -4,6 +4,12 @@ using CorporateTravel.Domain.Entities;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Moq;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using System.Collections.Generic;
+using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CorporateTravel.Tests.Features.Authentication.Commands.RegisterUser;
 
@@ -16,7 +22,15 @@ public class RegisterUserCommandHandlerTests
     {
         var userStoreMock = new Mock<IUserStore<ApplicationUser>>();
         _mockUserManager = new Mock<UserManager<ApplicationUser>>(
-            userStoreMock.Object, null, null, null, null, null, null, null, null);
+            userStoreMock.Object, 
+            new Mock<IOptions<IdentityOptions>>().Object, 
+            new Mock<IPasswordHasher<ApplicationUser>>().Object, 
+            new List<IUserValidator<ApplicationUser>>(), 
+            new List<IPasswordValidator<ApplicationUser>>(), 
+            new Mock<ILookupNormalizer>().Object, 
+            new Mock<IdentityErrorDescriber>().Object, 
+            new Mock<IServiceProvider>().Object, 
+            new Mock<ILogger<UserManager<ApplicationUser>>>().Object);
         _handler = new RegisterUserCommandHandler(_mockUserManager.Object);
     }
 
@@ -97,7 +111,7 @@ public class RegisterUserCommandHandlerTests
             Name = "Bob Wilson",
             Email = "bob.wilson@example.com",
             Password = "Password123!",
-            Role = null
+            Role = string.Empty
         };
 
         var successResult = IdentityResult.Success;

@@ -7,6 +7,10 @@ using Microsoft.Extensions.Configuration;
 using Moq;
 using System.Security.Claims;
 using System;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Security.Principal;
 
 namespace CorporateTravel.Tests.Services;
 
@@ -21,7 +25,15 @@ public class TokenServiceTests
         _mockConfiguration = new Mock<IConfiguration>();
         var userStoreMock = new Mock<IUserStore<ApplicationUser>>();
         _mockUserManager = new Mock<UserManager<ApplicationUser>>(
-            userStoreMock.Object, null, null, null, null, null, null, null, null);
+            userStoreMock.Object, 
+            new Mock<IOptions<IdentityOptions>>().Object, 
+            new Mock<IPasswordHasher<ApplicationUser>>().Object, 
+            new List<IUserValidator<ApplicationUser>>(), 
+            new List<IPasswordValidator<ApplicationUser>>(), 
+            new Mock<ILookupNormalizer>().Object, 
+            new Mock<IdentityErrorDescriber>().Object, 
+            new Mock<IServiceProvider>().Object, 
+            new Mock<ILogger<UserManager<ApplicationUser>>>().Object);
 
         // Setup configuration
         _mockConfiguration.Setup(x => x["Jwt:Key"]).Returns("your-super-secret-key-with-at-least-32-characters");
@@ -171,7 +183,7 @@ public class TokenServiceTests
     }
 
     [Fact]
-    public void ValidateToken_WithExpiredToken_ShouldReturnNull()
+    public async Task ValidateToken_WithExpiredToken_ShouldReturnNull()
     {
         // Arrange
         var user = new ApplicationUser
@@ -192,7 +204,7 @@ public class TokenServiceTests
         _mockConfiguration.Setup(x => x["Jwt:Issuer"]).Returns("CorporateTravel");
         _mockConfiguration.Setup(x => x["Jwt:Audience"]).Returns("CorporateTravelUsers");
 
-        var token = _tokenService.GenerateTokenAsync(user).Result;
+        var token = await _tokenService.GenerateTokenAsync(user);
 
         // Wait for token to expire (if we had a way to create expired tokens)
         // For now, we'll test with invalid token
