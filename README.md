@@ -9,15 +9,14 @@ Sistema completo de gerenciamento de viagens corporativas com backend .NET Core 
 - .NET 8 SDK (para desenvolvimento local)
 - Node.js 18+ (para desenvolvimento local)
 
-### Execução com Docker Compose (Recomendado)
+### Execução com Docker Compose
 
-#### Opção 1: Com Proxy Reverso (Produção)
 ```bash
 # Clone o repositório
 git clone <repository-url>
 cd corporate-travel
 
-# Inicie todos os serviços com proxy reverso
+# Inicie todos os serviços
 docker-compose up -d
 ```
 
@@ -27,28 +26,10 @@ Isso irá iniciar:
 - **Backend API** (porta 5178) - API .NET Core
 - **Frontend com Nginx** (porta 80) - Aplicação Angular com proxy reverso
 
-#### Opção 2: Desenvolvimento (Sem Proxy Reverso)
-```bash
-# Para desenvolvimento local sem proxy reverso
-docker-compose -f docker-compose.dev.yml up -d
-
-# Execute o frontend localmente
-cd frontend
-npm install
-ng serve
-```
-
 ### Acessos
 
-#### Com Proxy Reverso (Produção)
 - **Frontend**: http://localhost
 - **Backend API**: http://localhost/api
-- **Seq Logs**: http://localhost:5341
-- **PostgreSQL**: localhost:5432
-
-#### Desenvolvimento (Sem Proxy Reverso)
-- **Frontend**: http://localhost:4200
-- **Backend API**: http://localhost:5178
 - **Seq Logs**: http://localhost:5341
 - **PostgreSQL**: localhost:5432
 
@@ -72,8 +53,7 @@ corporate-travel/
 │   ├── Dockerfile         # Build do frontend
 │   ├── nginx.conf         # Configuração do proxy reverso
 │   └── package.json
-├── docker-compose.yml     # Orquestração com proxy reverso
-├── docker-compose.dev.yml # Orquestração para desenvolvimento
+├── docker-compose.yml     # Orquestração dos serviços
 └── README.md
 ```
 
@@ -208,17 +188,9 @@ ng test
 
 ## 📦 Deploy
 
-### Produção com Proxy Reverso
 ```bash
 # Build e deploy com Docker
 docker-compose up -d
-```
-
-### Desenvolvimento
-```bash
-# Execução local sem proxy reverso
-docker-compose -f docker-compose.dev.yml up -d
-cd frontend && ng serve
 ```
 
 ## 🤝 Contribuição
