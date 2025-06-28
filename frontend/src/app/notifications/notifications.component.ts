@@ -210,8 +210,29 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   }
 
   getMainMessage(notification: Notification): string {
-    // Remove a parte de origem/destino da mensagem
-    return notification.message?.replace(/Origem: ([^,]+), Destino: ([^\n]+)/, '').trim() || '';
+    // Se a notificação tem uma mensagem específica, use-a
+    if (notification.message) {
+      return notification.message;
+    }
+    
+    // Se tem um título específico, use-o como fallback
+    if (notification.title) {
+      return notification.title;
+    }
+    
+    // Fallback para mensagens baseadas no tipo
+    switch (notification.type) {
+      case 'success':
+        return 'Sua requisição de viagem foi aprovada';
+      case 'warning':
+        return 'Sua requisição de viagem foi rejeitada';
+      case 'info':
+        return 'Nova notificação';
+      case 'error':
+        return 'Erro na requisição de viagem';
+      default:
+        return 'Nova notificação';
+    }
   }
 
   getRouteInfo(notification: Notification): { origem: string, destino: string } | null {

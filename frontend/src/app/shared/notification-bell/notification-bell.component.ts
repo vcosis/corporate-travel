@@ -203,18 +203,26 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
   }
 
   getMainMessage(notification: Notification): string {
+    // Se a notificação tem uma mensagem específica, use-a
     if (notification.message) {
       return notification.message;
     }
     
+    // Se tem um título específico, use-o como fallback
+    if (notification.title) {
+      return notification.title;
+    }
+    
     // Fallback para mensagens baseadas no tipo
     switch (notification.type) {
-      case 'TravelRequestCreated':
-        return 'Nova solicitação de viagem criada';
-      case 'TravelRequestApproved':
-        return 'Solicitação de viagem aprovada';
-      case 'TravelRequestRejected':
-        return 'Solicitação de viagem rejeitada';
+      case 'success':
+        return 'Sua requisição de viagem foi aprovada';
+      case 'warning':
+        return 'Sua requisição de viagem foi rejeitada';
+      case 'info':
+        return 'Nova notificação';
+      case 'error':
+        return 'Erro na requisição de viagem';
       default:
         return 'Nova notificação';
     }

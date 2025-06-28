@@ -11,10 +11,12 @@ namespace CorporateTravel.Application.Features.TravelRequests.Commands.RejectTra
 public class RejectTravelRequestCommandHandler : IRequestHandler<RejectTravelRequestCommand, CommandResult>
 {
     private readonly ITravelRequestRepository _repository;
+    private readonly INotificationService _notificationService;
 
-    public RejectTravelRequestCommandHandler(ITravelRequestRepository repository)
+    public RejectTravelRequestCommandHandler(ITravelRequestRepository repository, INotificationService notificationService)
     {
         _repository = repository;
+        _notificationService = notificationService;
     }
 
     public async Task<CommandResult> Handle(RejectTravelRequestCommand request, CancellationToken cancellationToken)
@@ -36,6 +38,16 @@ public class RejectTravelRequestCommandHandler : IRequestHandler<RejectTravelReq
         // We don't set ApprovalDate for rejections
 
         await _repository.UpdateAsync(travelRequest);
+
+        // Criar notificação para o usuário que criou a requisição
+        await _notificationService.CreateNotificationAsync(
+            "Requisição de Viagem Rejeitada",
+            $"Sua requisição de viagem para {travelRequest.Destination} foi rejeitada.",
+            NotificationType.Warning,
+            travelRequest.RequestingUserId,
+            travelRequest.Id.ToString(),
+            "TravelRequest"
+        );
 
         return CommandResult.Success("Travel request rejected successfully");
     }

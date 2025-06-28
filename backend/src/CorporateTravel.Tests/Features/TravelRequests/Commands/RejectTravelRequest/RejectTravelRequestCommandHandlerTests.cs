@@ -1,35 +1,35 @@
 using Xunit;
 using CorporateTravel.Application.Dtos;
-using CorporateTravel.Application.Features.TravelRequests.Commands.ApproveTravelRequest;
+using CorporateTravel.Application.Features.TravelRequests.Commands.RejectTravelRequest;
 using CorporateTravel.Application.Interfaces;
 using CorporateTravel.Domain.Entities;
 using CorporateTravel.Domain.Enums;
 using FluentAssertions;
 using Moq;
 
-namespace CorporateTravel.Tests.Features.TravelRequests.Commands.ApproveTravelRequest;
+namespace CorporateTravel.Tests.Features.TravelRequests.Commands.RejectTravelRequest;
 
-public class ApproveTravelRequestCommandHandlerTests
+public class RejectTravelRequestCommandHandlerTests
 {
     private readonly Mock<ITravelRequestRepository> _mockRepository;
     private readonly Mock<INotificationService> _mockNotificationService;
-    private readonly ApproveTravelRequestCommandHandler _handler;
+    private readonly RejectTravelRequestCommandHandler _handler;
 
-    public ApproveTravelRequestCommandHandlerTests()
+    public RejectTravelRequestCommandHandlerTests()
     {
         _mockRepository = new Mock<ITravelRequestRepository>();
         _mockNotificationService = new Mock<INotificationService>();
-        _handler = new ApproveTravelRequestCommandHandler(_mockRepository.Object, _mockNotificationService.Object);
+        _handler = new RejectTravelRequestCommandHandler(_mockRepository.Object, _mockNotificationService.Object);
     }
 
     [Fact]
-    public async Task Handle_WithValidPendingRequest_ShouldApproveSuccessfully()
+    public async Task Handle_WithValidPendingRequest_ShouldRejectSuccessfully()
     {
         // Arrange
         var requestId = Guid.NewGuid();
         var approverId = Guid.NewGuid();
         var requestingUserId = Guid.NewGuid();
-        var command = new ApproveTravelRequestCommand
+        var command = new RejectTravelRequestCommand
         {
             Id = requestId,
             ApproverId = approverId
@@ -70,22 +70,20 @@ public class ApproveTravelRequestCommandHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.Succeeded.Should().BeTrue();
-        result.Message.Should().Be("Travel request approved successfully");
+        result.Message.Should().Be("Travel request rejected successfully");
 
         _mockRepository.Verify(x => x.GetByIdAsync(requestId), Times.Once);
         _mockRepository.Verify(x => x.UpdateAsync(It.Is<TravelRequest>(tr =>
             tr.Id == requestId &&
-            tr.Status == TravelRequestStatus.Approved &&
+            tr.Status == TravelRequestStatus.Rejected &&
             tr.ApproverId == approverId &&
-            tr.ApprovalDate >= DateTime.UtcNow.AddMinutes(-1) &&
-            tr.ApprovalDate <= DateTime.UtcNow.AddMinutes(1) &&
             tr.UpdatedAt >= DateTime.UtcNow.AddMinutes(-1) &&
             tr.UpdatedAt <= DateTime.UtcNow.AddMinutes(1))), Times.Once);
 
         _mockNotificationService.Verify(x => x.CreateNotificationAsync(
-            "Requisição de Viagem Aprovada",
-            $"Sua requisição de viagem para {travelRequest.Destination} foi aprovada.",
-            NotificationType.Success,
+            "Requisição de Viagem Rejeitada",
+            $"Sua requisição de viagem para {travelRequest.Destination} foi rejeitada.",
+            NotificationType.Warning,
             requestingUserId,
             requestId.ToString(),
             "TravelRequest"), Times.Once);
@@ -97,7 +95,7 @@ public class ApproveTravelRequestCommandHandlerTests
         // Arrange
         var requestId = Guid.NewGuid();
         var approverId = Guid.NewGuid();
-        var command = new ApproveTravelRequestCommand
+        var command = new RejectTravelRequestCommand
         {
             Id = requestId,
             ApproverId = approverId
@@ -116,6 +114,13 @@ public class ApproveTravelRequestCommandHandlerTests
 
         _mockRepository.Verify(x => x.GetByIdAsync(requestId), Times.Once);
         _mockRepository.Verify(x => x.UpdateAsync(It.IsAny<TravelRequest>()), Times.Never);
+        _mockNotificationService.Verify(x => x.CreateNotificationAsync(
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            It.IsAny<NotificationType>(),
+            It.IsAny<Guid>(),
+            It.IsAny<string>(),
+            It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -124,7 +129,7 @@ public class ApproveTravelRequestCommandHandlerTests
         // Arrange
         var requestId = Guid.NewGuid();
         var approverId = Guid.NewGuid();
-        var command = new ApproveTravelRequestCommand
+        var command = new RejectTravelRequestCommand
         {
             Id = requestId,
             ApproverId = approverId
@@ -153,19 +158,26 @@ public class ApproveTravelRequestCommandHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.Succeeded.Should().BeFalse();
-        result.Message.Should().Be("Only pending travel requests can be approved");
+        result.Message.Should().Be("Only pending travel requests can be rejected");
 
         _mockRepository.Verify(x => x.GetByIdAsync(requestId), Times.Once);
         _mockRepository.Verify(x => x.UpdateAsync(It.IsAny<TravelRequest>()), Times.Never);
+        _mockNotificationService.Verify(x => x.CreateNotificationAsync(
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            It.IsAny<NotificationType>(),
+            It.IsAny<Guid>(),
+            It.IsAny<string>(),
+            It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
-    public async Task Handle_WithRejectedRequest_ShouldReturnFailure()
+    public async Task Handle_WithAlreadyRejectedRequest_ShouldReturnFailure()
     {
         // Arrange
         var requestId = Guid.NewGuid();
         var approverId = Guid.NewGuid();
-        var command = new ApproveTravelRequestCommand
+        var command = new RejectTravelRequestCommand
         {
             Id = requestId,
             ApproverId = approverId
@@ -194,10 +206,17 @@ public class ApproveTravelRequestCommandHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.Succeeded.Should().BeFalse();
-        result.Message.Should().Be("Only pending travel requests can be approved");
+        result.Message.Should().Be("Only pending travel requests can be rejected");
 
         _mockRepository.Verify(x => x.GetByIdAsync(requestId), Times.Once);
         _mockRepository.Verify(x => x.UpdateAsync(It.IsAny<TravelRequest>()), Times.Never);
+        _mockNotificationService.Verify(x => x.CreateNotificationAsync(
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            It.IsAny<NotificationType>(),
+            It.IsAny<Guid>(),
+            It.IsAny<string>(),
+            It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -206,7 +225,7 @@ public class ApproveTravelRequestCommandHandlerTests
         // Arrange
         var requestId = Guid.NewGuid();
         var approverId = Guid.NewGuid();
-        var command = new ApproveTravelRequestCommand
+        var command = new RejectTravelRequestCommand
         {
             Id = requestId,
             ApproverId = approverId
@@ -227,7 +246,7 @@ public class ApproveTravelRequestCommandHandlerTests
         // Arrange
         var requestId = Guid.NewGuid();
         var approverId = Guid.NewGuid();
-        var command = new ApproveTravelRequestCommand
+        var command = new RejectTravelRequestCommand
         {
             Id = requestId,
             ApproverId = approverId
@@ -267,7 +286,7 @@ public class ApproveTravelRequestCommandHandlerTests
         // Arrange
         var requestId = Guid.NewGuid();
         var approverId = Guid.NewGuid();
-        var command = new ApproveTravelRequestCommand
+        var command = new RejectTravelRequestCommand
         {
             Id = requestId,
             ApproverId = approverId
@@ -296,9 +315,16 @@ public class ApproveTravelRequestCommandHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.Succeeded.Should().BeFalse();
-        result.Message.Should().Be("Only pending travel requests can be approved");
+        result.Message.Should().Be("Only pending travel requests can be rejected");
 
         _mockRepository.Verify(x => x.GetByIdAsync(requestId), Times.Once);
         _mockRepository.Verify(x => x.UpdateAsync(It.IsAny<TravelRequest>()), Times.Never);
+        _mockNotificationService.Verify(x => x.CreateNotificationAsync(
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            It.IsAny<NotificationType>(),
+            It.IsAny<Guid>(),
+            It.IsAny<string>(),
+            It.IsAny<string>()), Times.Never);
     }
 } 
