@@ -108,7 +108,7 @@ export class TravelRequestListComponent implements OnInit, AfterViewInit {
   statusOptions = [
     { value: '', label: 'Todos os status' },
     { value: 'approved', label: 'Aprovadas' },
-    { value: 'rejected', label: 'Rejeitadas' }
+    { value: 'rejected', label: 'Reprovadas' }
   ];
 
   sortOptions = [
@@ -317,7 +317,7 @@ export class TravelRequestListComponent implements OnInit, AfterViewInit {
         return 'Aprovado';
       case '2':
       case 'rejected':
-        return 'Rejeitado';
+        return 'Reprovado';
       default:
         return value;
     }
@@ -399,7 +399,7 @@ export class TravelRequestListComponent implements OnInit, AfterViewInit {
     if (status === '1' || status === 'approved') {
       return 'Solicitações aprovadas não podem ser excluídas';
     } else if (status === '2' || status === 'rejected') {
-      return 'Solicitações rejeitadas não podem ser excluídas';
+      return 'Solicitações reprovadas não podem ser excluídas';
     } else {
       return 'Excluir solicitação';
     }
@@ -414,7 +414,7 @@ export class TravelRequestListComponent implements OnInit, AfterViewInit {
     if (status === '1' || status === 'approved') {
       return 'Solicitações aprovadas não podem ser editadas';
     } else if (status === '2' || status === 'rejected') {
-      return 'Solicitações rejeitadas não podem ser editadas';
+      return 'Solicitações reprovadas não podem ser editadas';
     } else {
       return 'Editar solicitação';
     }
@@ -433,7 +433,7 @@ export class TravelRequestListComponent implements OnInit, AfterViewInit {
         });
         this.loadTravelRequests(); // Recarregar a lista
       } else if (result === 'rejected') {
-        this.snackBar.open('Solicitação rejeitada com sucesso!', 'Fechar', {
+        this.snackBar.open('Solicitação reprovada com sucesso!', 'Fechar', {
           duration: 3000
         });
         this.loadTravelRequests(); // Recarregar a lista
@@ -487,11 +487,11 @@ export class TravelRequestListComponent implements OnInit, AfterViewInit {
     if (!selected.length) return;
     try {
       await this.travelRequestService.batchReject(selected.map(r => r.id)).toPromise();
-      this.snackBar.open('Solicitações rejeitadas com sucesso!', 'Fechar', { duration: 3000 });
+      this.snackBar.open('Solicitações reprovadas com sucesso!', 'Fechar', { duration: 3000 });
       this.selection.clear();
       this.loadTravelRequests();
     } catch (e) {
-      this.snackBar.open('Erro ao rejeitar solicitações.', 'Fechar', { duration: 3000 });
+      this.snackBar.open('Erro ao reprovar solicitações.', 'Fechar', { duration: 3000 });
     }
   }
 

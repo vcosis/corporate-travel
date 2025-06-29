@@ -70,7 +70,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   };
   public pieChartData: ChartData<'pie', number[], string | string[]> = {
-    labels: ['Pendente', 'Aprovado', 'Rejeitado'],
+    labels: ['Pendente', 'Aprovado', 'Reprovado'],
     datasets: [{
       data: [0, 0, 0],
       backgroundColor: ['#ff9800', '#4caf50', '#f44336'],
@@ -193,7 +193,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
 
     this.pieChartData = {
-      labels: ['Pendente', 'Aprovado', 'Rejeitado'],
+      labels: ['Pendente', 'Aprovado', 'Reprovado'],
       datasets: [{
         data: [this.stats.pending, this.stats.approved, this.stats.rejected],
         backgroundColor: this.getStatusColors(),

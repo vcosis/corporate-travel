@@ -29,7 +29,7 @@
             </button>
             <button mat-button [disabled]="!hasPendingSelection" *ngIf="isAdmin || isManager" (click)="batchReject()">
               <mat-icon>block</mat-icon>
-              Rejeitar
+              Reprovar
             </button>
             <button mat-button [disabled]="!hasPendingSelection" *ngIf="isAdmin" (click)="batchDelete()">
               <mat-icon>delete</mat-icon>

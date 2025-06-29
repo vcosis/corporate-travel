@@ -225,7 +225,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
       case 'success':
         return 'Sua requisição de viagem foi aprovada';
       case 'warning':
-        return 'Sua requisição de viagem foi rejeitada';
+        return 'Sua requisição de viagem foi reprovada';
       case 'info':
         return 'Nova notificação';
       case 'error':
