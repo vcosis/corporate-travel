@@ -32,6 +32,12 @@ public class ApproveTravelRequestCommandHandler : IRequestHandler<ApproveTravelR
             return CommandResult.Failure("Only pending travel requests can be approved");
         }
 
+        // Verificar se o aprovador não é o mesmo que criou a solicitação
+        if (travelRequest.RequestingUserId == request.ApproverId)
+        {
+            return CommandResult.Failure("Users cannot approve their own travel requests");
+        }
+
         travelRequest.Status = TravelRequestStatus.Approved;
         travelRequest.ApproverId = request.ApproverId;
         travelRequest.ApprovalDate = DateTime.UtcNow;

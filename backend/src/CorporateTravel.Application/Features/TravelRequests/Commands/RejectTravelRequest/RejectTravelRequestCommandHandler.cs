@@ -32,6 +32,12 @@ public class RejectTravelRequestCommandHandler : IRequestHandler<RejectTravelReq
             return CommandResult.Failure("Only pending travel requests can be rejected");
         }
 
+        // Verificar se o aprovador não é o mesmo que criou a solicitação
+        if (travelRequest.RequestingUserId == request.ApproverId)
+        {
+            return CommandResult.Failure("Users cannot reject their own travel requests");
+        }
+
         travelRequest.Status = TravelRequestStatus.Rejected;
         travelRequest.ApproverId = request.ApproverId;
         travelRequest.UpdatedAt = DateTime.UtcNow;

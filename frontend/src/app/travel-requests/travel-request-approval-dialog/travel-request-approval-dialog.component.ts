@@ -55,7 +55,14 @@ export class TravelRequestApprovalDialogComponent implements OnInit {
 
   private checkPermissions(): void {
     // Apenas Admin e Manager podem aprovar/rejeitar
-    this.canApprove = this.authService.hasRole('Admin') || this.authService.hasRole('Manager');
+    const hasManagerRole = this.authService.hasRole('Admin') || this.authService.hasRole('Manager');
+    
+    // Verificar se o usuário atual não é o mesmo que criou a solicitação
+    const currentUserId = this.authService.getCurrentUserId();
+    const isOwnRequest = currentUserId === this.travelRequest.requestingUserId;
+    
+    // Só pode aprovar se tem role de manager/admin E não é a própria solicitação
+    this.canApprove = hasManagerRole && !isOwnRequest;
   }
 
   approve(): void {

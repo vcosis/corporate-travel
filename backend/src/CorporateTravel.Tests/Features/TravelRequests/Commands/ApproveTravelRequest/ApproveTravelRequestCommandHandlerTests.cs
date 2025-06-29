@@ -201,6 +201,54 @@ public class ApproveTravelRequestCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_WhenUserTriesToApproveOwnRequest_ShouldReturnFailure()
+    {
+        // Arrange
+        var requestId = Guid.NewGuid();
+        var userId = Guid.NewGuid(); // Mesmo ID para solicitante e aprovador
+        var command = new ApproveTravelRequestCommand
+        {
+            Id = requestId,
+            ApproverId = userId
+        };
+
+        var travelRequest = new TravelRequest
+        {
+            Id = requestId,
+            RequestCode = "TR-2024-001",
+            Origin = "São Paulo",
+            Destination = "Rio de Janeiro",
+            StartDate = DateTime.UtcNow.AddDays(7),
+            EndDate = DateTime.UtcNow.AddDays(10),
+            Reason = "Reunião com cliente",
+            Status = TravelRequestStatus.Pending,
+            RequestingUserId = userId, // Mesmo ID do aprovador
+            CreatedAt = DateTime.UtcNow.AddDays(-1)
+        };
+
+        _mockRepository.Setup(x => x.GetByIdAsync(requestId))
+            .ReturnsAsync(travelRequest);
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Succeeded.Should().BeFalse();
+        result.Message.Should().Be("Users cannot approve their own travel requests");
+
+        _mockRepository.Verify(x => x.GetByIdAsync(requestId), Times.Once);
+        _mockRepository.Verify(x => x.UpdateAsync(It.IsAny<TravelRequest>()), Times.Never);
+        _mockNotificationService.Verify(x => x.CreateNotificationAsync(
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            It.IsAny<NotificationType>(),
+            It.IsAny<Guid>(),
+            It.IsAny<string>(),
+            It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
     public async Task Handle_WhenRepositoryThrowsException_ShouldPropagateException()
     {
         // Arrange
