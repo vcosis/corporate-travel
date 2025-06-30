@@ -46,7 +46,7 @@ namespace CorporateTravel.Infrastructure.Data
                     Name = "Admin"
                 };
 
-                var createUserResult = await userManager.CreateAsync(newAdminUser, "Admin@123");
+                var createUserResult = await userManager.CreateAsync(newAdminUser, "Admin123!");
                 if (createUserResult.Succeeded)
                 {
                     await userManager.AddToRoleAsync(newAdminUser, "Admin");
@@ -76,7 +76,7 @@ namespace CorporateTravel.Infrastructure.Data
                     Name = "Manager"
                 };
 
-                var createUserResult = await userManager.CreateAsync(newManagerUser, "Manager@123");
+                var createUserResult = await userManager.CreateAsync(newManagerUser, "Manager123!");
                 if (createUserResult.Succeeded)
                 {
                     await userManager.AddToRoleAsync(newManagerUser, "Manager");
@@ -102,7 +102,7 @@ namespace CorporateTravel.Infrastructure.Data
                     Name = "Regular User"
                 };
 
-                var createUserResult = await userManager.CreateAsync(newRegularUser, "User@123");
+                var createUserResult = await userManager.CreateAsync(newRegularUser, "User123!");
                 if (createUserResult.Succeeded)
                 {
                     await userManager.AddToRoleAsync(newRegularUser, "User");

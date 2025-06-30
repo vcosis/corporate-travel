@@ -29,137 +29,71 @@ Isso irá iniciar:
 ## Parâmetros disponíveis
 
 - `--seed` ou `-s`: Executa o seed do banco de dados, criando usuários padrão e dados de exemplo
-  - Admin: admin@corporatetravel.com / Admin@123
-  - Manager: manager@corporatetravel.com / Manager@123
-  - User: user@corporatetravel.com / User@123
+  - Admin: admin@corporatetravel.com / Admin123!
+  - Manager: manager@corporatetravel.com / Manager123!
+  - User: user@corporatetravel.com / User123!
 
 ## Configuração
 
-Certifique-se de que o banco de dados está configurado e acessível antes de executar o seed.
+### Variáveis de Ambiente
 
-O seed irá:
-1. Criar os roles: Admin, Manager, User
-2. Criar usuários padrão com suas respectivas roles
-3. Criar solicitações de viagem de exemplo para cada usuário 
+O projeto utiliza as seguintes variáveis de ambiente:
 
-## Logging com Serilog
+- `ASPNETCORE_ENVIRONMENT`: Define o ambiente (Development, Production, etc.)
+- `ConnectionStrings__DefaultConnection`: String de conexão com o banco de dados PostgreSQL
+- `Jwt__Key`: Chave secreta para assinatura dos tokens JWT
+- `Jwt__Issuer`: Emissor do token JWT
+- `Jwt__Audience`: Audiência do token JWT
 
-Este projeto utiliza o Serilog para logging estruturado com configuração baseada em `appsettings.json`.
+### Configuração do Banco de Dados
 
-### Configuração
+O projeto utiliza PostgreSQL como banco de dados principal. A string de conexão deve seguir o formato:
 
-O Serilog é configurado através dos arquivos `appsettings.json`:
+```
+Host=localhost;Port=5432;Database=corporatetravel;Username=postgres;Password=postgres
+```
 
-#### appsettings.json (Configuração Base)
+### Configuração JWT
+
+As configurações JWT estão definidas no `appsettings.json`:
+
 ```json
 {
-  "Serilog": {
-    "MinimumLevel": {
-      "Default": "Information",
-      "Override": {
-        "Microsoft": "Warning",
-        "Microsoft.AspNetCore": "Warning",
-        "Microsoft.EntityFrameworkCore": "Warning"
-      }
-    },
-    "WriteTo": [
-      {
-        "Name": "Console",
-        "Args": {
-          "outputTemplate": "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"
-        }
-      },
-      {
-        "Name": "File",
-        "Args": {
-          "path": "logs/corporate-travel-.txt",
-          "rollingInterval": "Day",
-          "outputTemplate": "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}",
-          "retainedFileCountLimit": 30
-        }
-      },
-      {
-        "Name": "Seq",
-        "Args": {
-          "serverUrl": "http://seq:80"
-        }
-      }
-    ],
-    "Enrich": ["FromLogContext", "WithEnvironmentName", "WithThreadId"]
+  "Jwt": {
+    "Key": "a-very-secret-key-that-is-long-enough-and-should-be-in-secrets",
+    "Issuer": "CorporateTravel.API",
+    "Audience": "CorporateTravel.Users"
   }
 }
 ```
 
-#### appsettings.Development.json
-- **Nível de log**: Information/Debug para desenvolvimento
-- **Console**: Habilitado com formatação detalhada
-- **Arquivo**: Logs salvos em `logs/corporate-travel-{data}.txt`
-- **Seq**: Logs enviados para análise estruturada
+## Estrutura do Projeto
 
-#### appsettings.Production.json
-- **Nível de log**: Warning para reduzir volume
-- **Console**: Desabilitado
-- **Arquivo**: Com limite de tamanho e rotação
-- **Seq**: Para monitoramento em produção
+### Camadas da Aplicação
 
-### Seq - Log Aggregation
+- **API**: Controllers e configuração da aplicação
+- **Application**: Casos de uso, DTOs e interfaces
+- **Domain**: Entidades e regras de negócio
+- **Infrastructure**: Implementação de repositórios e serviços externos
 
-O projeto inclui o Seq configurado no Docker Compose para análise de logs estruturados:
+### Padrões Utilizados
 
-- **URL**: http://localhost:5341
-- **Container**: `corporatetravel-seq`
-- **Persistência**: Volume Docker para manter dados entre reinicializações
-- **Health Check**: Verificação automática de saúde do serviço
+- **CQRS**: Separação de comandos e consultas
+- **MediatR**: Implementação do padrão mediator
+- **Repository Pattern**: Abstração do acesso a dados
+- **Identity**: Autenticação e autorização
+- **JWT**: Tokens para autenticação stateless
 
-#### Benefícios do Seq:
-- **Análise em tempo real**: Visualização de logs estruturados
-- **Filtros avançados**: Busca por propriedades específicas
-- **Dashboards**: Criação de dashboards personalizados
-- **Alertas**: Configuração de alertas baseados em padrões de log
-- **Retenção**: Política de retenção configurável
+## Logging
 
-### Request Logging
+O projeto utiliza Serilog para logging estruturado com as seguintes configurações:
 
-O projeto utiliza o `UseSerilogRequestLogging()` do Serilog.AspNetCore para capturar automaticamente:
+- Console logging para desenvolvimento
+- File logging com rotação diária
+- Seq para agregação de logs (opcional)
+- Enriquecimento com contexto de ambiente e thread
 
-- **Todas as requisições HTTP** com método, path e status code
-- **Tempo de resposta** em milissegundos
-- **IP do cliente** e user agent
-- **Tamanho da requisição e resposta**
-- **Propriedades estruturadas** para análise no Seq
-
-#### Exemplo de log de requisição:
-```
-HTTP GET /api/travelrequests completed with 200 in 45ms
-```
-
-### Níveis de Log
-
-- **Information**: Eventos gerais da aplicação
-- **Warning**: Avisos e situações que merecem atenção
-- **Error**: Erros que não impedem a execução
-- **Fatal**: Erros críticos que causam falha na aplicação
-- **Debug**: Informações detalhadas para desenvolvimento
-
-### Uso
-
-```csharp
-// Injeção do logger
-private readonly ILogger _logger = Log.ForContext<MinhaClasse>();
-
-// Exemplos de uso
-_logger.Information("Aplicação iniciada");
-_logger.Warning("Token expirado para usuário {UserId}", userId);
-_logger.Error(ex, "Erro ao processar requisição");
-_logger.Debug("Dados de debug: {Dados}", dados);
-```
-
-### Configuração de Ambiente
-
-- **Development**: Logs detalhados no console e arquivo
-- **Production**: Logs estruturados para Seq e arquivo
-
-### Dependências
+### Pacotes Serilog Utilizados
 
 - Serilog.AspNetCore
 - Serilog.Settings.Configuration
@@ -168,3 +102,11 @@ _logger.Debug("Dados de debug: {Dados}", dados);
 - Serilog.Sinks.Seq
 - Serilog.Enrichers.Environment
 - Serilog.Enrichers.Thread 
+
+## 👥 Usuários Padrão
+
+Após executar o seed do banco de dados:
+
+- **Admin**: admin@corporatetravel.com / Admin123!
+- **Manager**: manager@corporatetravel.com / Manager123!  
+- **User**: user@corporatetravel.com / User123! 

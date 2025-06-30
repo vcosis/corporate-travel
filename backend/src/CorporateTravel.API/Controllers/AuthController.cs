@@ -16,7 +16,9 @@ public class AuthController : ControllerBase
     private readonly IMediator _mediator;
     private readonly IPasswordRequirementsService _passwordRequirementsService;
 
-    public AuthController(IMediator mediator, IPasswordRequirementsService passwordRequirementsService)
+    public AuthController(
+        IMediator mediator, 
+        IPasswordRequirementsService passwordRequirementsService)
     {
         _mediator = mediator;
         _passwordRequirementsService = passwordRequirementsService;
