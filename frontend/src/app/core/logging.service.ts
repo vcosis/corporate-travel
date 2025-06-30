@@ -45,8 +45,17 @@ export class LoggingService {
   }
 
   private showErrorToUser(message: string, error?: any): void {
+    // Não mostrar toast para erro 401 na rota de login
+    if (
+      error &&
+      error.status === 401 &&
+      error.url &&
+      error.url.includes('/auth/login')
+    ) {
+      // Apenas loga no console
+      return;
+    }
     let errorMessage = message;
-    
     if (error) {
       // Extrair mensagem de erro mais específica
       if (error.error?.error) {
@@ -59,7 +68,6 @@ export class LoggingService {
         errorMessage = error;
       }
     }
-
     this.snackBar.open(errorMessage, 'Fechar', {
       duration: 5000,
       panelClass: ['error-snackbar']

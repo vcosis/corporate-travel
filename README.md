@@ -146,9 +146,9 @@ O sistema oferece duas opções de proxy:
 
 Após executar o seed do banco de dados:
 
-- **Admin**: admin@corporatetravel.com / Admin@123
-- **Manager**: manager@corporatetravel.com / Manager@123  
-- **User**: user@corporatetravel.com / User@123
+- **Admin**: admin@corporatetravel.com / Admin123!
+- **Manager**: manager@corporatetravel.com / Manager123!  
+- **User**: user@corporatetravel.com / User123!
 
 ## 📊 Logging e Monitoramento
 
