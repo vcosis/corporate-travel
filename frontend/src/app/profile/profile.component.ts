@@ -67,8 +67,8 @@ export class ProfileComponent implements OnInit {
 
   private setupBreadcrumb(): void {
     this.breadcrumbItems = [
-      { label: 'Dashboard', url: '/dashboard' },
-      { label: 'Perfil', url: '/profile' }
+      { label: 'Dashboard', route: '/dashboard' },
+      { label: 'Perfil', route: '/profile' }
     ];
     this.breadcrumbService.setBreadcrumbs(this.breadcrumbItems);
   }
@@ -132,9 +132,7 @@ export class ProfileComponent implements OnInit {
 
     const formValue = this.profileForm.value;
     const updateData = {
-      name: formValue.name,
-      currentPassword: null,
-      newPassword: null
+      name: formValue.name
     };
 
     this.isLoading = true;
