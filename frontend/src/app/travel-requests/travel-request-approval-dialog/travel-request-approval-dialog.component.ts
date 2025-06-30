@@ -91,7 +91,7 @@ export class TravelRequestApprovalDialogComponent implements OnInit {
         }, 900);
       },
       error: () => {
-        this.snackBar.open('Erro ao rejeitar solicitação.', 'Fechar', { duration: 3000 });
+        this.snackBar.open('Erro ao reprovar solicitação.', 'Fechar', { duration: 3000 });
         this.loadingReject = false;
       }
     });
@@ -157,7 +157,7 @@ export class TravelRequestApprovalDialogComponent implements OnInit {
       case '2':
       case 'rejected':
       case 'rejeitado':
-        return 'Rejeitado';
+        return 'Reprovado';
       default:
         return value;
     }
