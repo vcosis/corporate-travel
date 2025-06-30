@@ -31,17 +31,10 @@
               Password is required
             </mat-error>
           </mat-form-field>
-
-          <!-- Mostrar requisitos de senha quando necessário -->
-          <app-password-requirements 
-            [password]="loginForm.get('password')?.value" 
-            [showRequirements]="showPasswordRequirements">
-          </app-password-requirements>
           
           <div *ngIf="loginError" class="error-message">
             <mat-icon>error</mat-icon>
-            <span *ngIf="passwordErrors.length > 0">{{ getPasswordErrors() }}</span>
-            <span *ngIf="passwordErrors.length === 0">Invalid email or password</span>
+            <span>Email ou senha inválidos</span>
           </div>
           
           <button mat-raised-button color="primary" type="submit" 

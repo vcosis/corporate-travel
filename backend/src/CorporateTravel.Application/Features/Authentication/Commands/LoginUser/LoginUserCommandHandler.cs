@@ -12,16 +12,13 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, AuthRes
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ITokenService _tokenService;
-    private readonly IPasswordRequirementsService _passwordRequirementsService;
 
     public LoginUserCommandHandler(
         UserManager<ApplicationUser> userManager, 
-        ITokenService tokenService,
-        IPasswordRequirementsService passwordRequirementsService)
+        ITokenService tokenService)
     {
         _userManager = userManager;
         _tokenService = tokenService;
-        _passwordRequirementsService = passwordRequirementsService;
     }
 
     public async Task<AuthResponseDto?> Handle(LoginUserCommand request, CancellationToken cancellationToken)
@@ -30,13 +27,6 @@ public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, AuthRes
         
         if (user == null)
         {
-            return null;
-        }
-
-        // Verificar se a senha está no formato correto antes de tentar autenticar
-        if (!_passwordRequirementsService.ValidatePassword(request.Password, out var passwordErrors))
-        {
-            // Retornar null para indicar falha na autenticação, mas o frontend pode usar as validações
             return null;
         }
 
