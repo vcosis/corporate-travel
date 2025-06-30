@@ -46,7 +46,7 @@ public class LoginUserCommandHandlerTests
         var command = new LoginUserCommand
         {
             Email = "test@example.com",
-            Password = "password123"
+            Password = "Password123!"
         };
 
         var user = new ApplicationUser
@@ -96,7 +96,7 @@ public class LoginUserCommandHandlerTests
         var command = new LoginUserCommand
         {
             Email = "invalid@example.com",
-            Password = "password123"
+            Password = "Password123!"
         };
 
         _mockUserManager.Setup(x => x.FindByEmailAsync(command.Email))
@@ -157,7 +157,7 @@ public class LoginUserCommandHandlerTests
         var command = new LoginUserCommand
         {
             Email = "admin@example.com",
-            Password = "password123"
+            Password = "Password123!"
         };
 
         var user = new ApplicationUser
@@ -201,7 +201,7 @@ public class LoginUserCommandHandlerTests
         var command = new LoginUserCommand
         {
             Email = "test@example.com",
-            Password = "password123"
+            Password = "Password123!"
         };
 
         var user = new ApplicationUser

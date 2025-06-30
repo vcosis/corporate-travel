@@ -15,6 +15,8 @@ import { BreadcrumbComponent, BreadcrumbItem } from '../shared/breadcrumb/breadc
 import { BreadcrumbService } from '../shared/breadcrumb/breadcrumb.service';
 import { ProfileService } from './profile.service';
 import { LoggingService } from '../core/logging.service';
+import { PasswordRequirementsService } from '../core/password-requirements.service';
+import { PasswordRequirementsComponent } from '../shared/password-requirements/password-requirements.component';
 
 @Component({
   selector: 'app-profile',
@@ -31,7 +33,8 @@ import { LoggingService } from '../core/logging.service';
     MatProgressSpinnerModule,
     MatDividerModule,
     ReactiveFormsModule,
-    BreadcrumbComponent
+    BreadcrumbComponent,
+    PasswordRequirementsComponent
   ],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss']
@@ -43,6 +46,7 @@ export class ProfileComponent implements OnInit {
   isPasswordLoading = false;
   currentUser: User | null = null;
   breadcrumbItems: BreadcrumbItem[] = [];
+  showPasswordRequirements = false;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -51,52 +55,32 @@ export class ProfileComponent implements OnInit {
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
     private breadcrumbService: BreadcrumbService,
-    private loggingService: LoggingService
+    private loggingService: LoggingService,
+    private passwordService: PasswordRequirementsService
   ) {}
 
   ngOnInit(): void {
-    this.initializeBreadcrumb();
+    this.setupBreadcrumb();
     this.loadCurrentUser();
     this.initializeForms();
   }
 
-  private initializeBreadcrumb(): void {
-    this.breadcrumbService.setProfileBreadcrumb();
-    this.breadcrumbItems = this.breadcrumbService.getBreadcrumbs();
+  private setupBreadcrumb(): void {
+    this.breadcrumbItems = [
+      { label: 'Dashboard', url: '/dashboard' },
+      { label: 'Perfil', url: '/profile' }
+    ];
+    this.breadcrumbService.setBreadcrumbs(this.breadcrumbItems);
   }
 
   private loadCurrentUser(): void {
     this.currentUser = this.authService.getCurrentUser();
     if (!this.currentUser) {
+      this.loggingService.error('Usuário não encontrado');
       this.snackBar.open('Erro ao carregar dados do usuário', 'Fechar', {
         duration: 3000
       });
-      return;
     }
-
-    // Carregar dados completos do perfil do backend
-    this.isLoading = true;
-    this.profileService.getProfile().subscribe({
-      next: (response) => {
-        if (response.user) {
-          this.currentUser = {
-            name: response.user.name,
-            email: response.user.email,
-            roles: response.user.roles,
-            createdAt: response.user.createdAt
-          };
-          this.initializeForms();
-        }
-        this.isLoading = false;
-      },
-      error: (error) => {
-        this.loggingService.error('Erro ao carregar perfil:', error);
-        this.snackBar.open('Erro ao carregar dados do perfil', 'Fechar', {
-          duration: 3000
-        });
-        this.isLoading = false;
-      }
-    });
   }
 
   private initializeForms(): void {
@@ -111,10 +95,20 @@ export class ProfileComponent implements OnInit {
 
     // Formulário de alteração de senha
     this.passwordForm = this.formBuilder.group({
-      currentPassword: ['', [Validators.required, Validators.minLength(6)]],
-      newPassword: ['', [Validators.required, Validators.minLength(6)]],
-      confirmPassword: ['', [Validators.required, Validators.minLength(6)]]
+      currentPassword: ['', [Validators.required, Validators.minLength(8)]],
+      newPassword: ['', [Validators.required, Validators.minLength(8)]],
+      confirmPassword: ['', [Validators.required, Validators.minLength(8)]]
     }, { validators: this.passwordMatchValidator });
+
+    // Monitorar mudanças na nova senha para validação
+    this.passwordForm.get('newPassword')?.valueChanges.subscribe(password => {
+      if (password) {
+        const validation = this.passwordService.validatePassword(password);
+        this.showPasswordRequirements = !validation.isValid && password.length > 0;
+      } else {
+        this.showPasswordRequirements = false;
+      }
+    });
   }
 
   private passwordMatchValidator(form: FormGroup): { [key: string]: any } | null {
@@ -129,7 +123,7 @@ export class ProfileComponent implements OnInit {
   }
 
   saveProfile(): void {
-    if (this.profileForm.get('name')?.invalid) {
+    if (this.profileForm.invalid) {
       this.snackBar.open('Por favor, corrija os erros no formulário', 'Fechar', {
         duration: 3000
       });
@@ -138,18 +132,20 @@ export class ProfileComponent implements OnInit {
 
     const formValue = this.profileForm.value;
     const updateData = {
-      name: formValue.name
+      name: formValue.name,
+      currentPassword: null,
+      newPassword: null
     };
 
     this.isLoading = true;
 
     this.profileService.updateProfile(updateData).subscribe({
       next: (response) => {
-        this.snackBar.open('Informações atualizadas com sucesso!', 'Fechar', {
+        this.snackBar.open('Perfil atualizado com sucesso!', 'Fechar', {
           duration: 3000
         });
         
-        // Atualizar dados locais
+        // Atualizar dados do usuário no localStorage
         if (this.currentUser) {
           this.currentUser.name = formValue.name;
           this.authService.updateCurrentUser(this.currentUser);
@@ -158,8 +154,8 @@ export class ProfileComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.loggingService.error('Erro ao atualizar informações:', error);
-        this.snackBar.open('Erro ao atualizar informações', 'Fechar', {
+        this.loggingService.error('Erro ao atualizar perfil:', error);
+        this.snackBar.open('Erro ao atualizar perfil', 'Fechar', {
           duration: 3000
         });
         this.isLoading = false;
@@ -176,6 +172,16 @@ export class ProfileComponent implements OnInit {
     }
 
     const formValue = this.passwordForm.value;
+    
+    // Validar a nova senha
+    const validation = this.passwordService.validatePassword(formValue.newPassword);
+    if (!validation.isValid) {
+      this.snackBar.open('Por favor, corrija os erros na senha: ' + validation.errors.join(', '), 'Fechar', {
+        duration: 5000
+      });
+      return;
+    }
+
     const updateData = {
       name: this.currentUser?.name || '', // Manter o nome atual
       currentPassword: formValue.currentPassword,

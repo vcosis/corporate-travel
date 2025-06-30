@@ -7,6 +7,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { UserService } from '../user.service';
+import { PasswordRequirementsService } from '../../core/password-requirements.service';
+import { PasswordRequirementsComponent } from '../../shared/password-requirements/password-requirements.component';
 
 @Component({
   selector: 'app-create-user-dialog',
@@ -18,7 +20,8 @@ import { UserService } from '../user.service';
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    PasswordRequirementsComponent
   ],
   template: `
     <h2 mat-dialog-title>Novo Usuário</h2>
@@ -50,9 +53,15 @@ import { UserService } from '../user.service';
             Senha é obrigatória
           </mat-error>
           <mat-error *ngIf="form.get('password')?.hasError('minlength')">
-            Senha deve ter pelo menos 6 caracteres
+            Senha deve ter pelo menos 8 caracteres
           </mat-error>
         </mat-form-field>
+
+        <!-- Mostrar requisitos de senha quando necessário -->
+        <app-password-requirements 
+          [password]="form.get('password')?.value" 
+          [showRequirements]="showPasswordRequirements">
+        </app-password-requirements>
 
         <mat-form-field appearance="outline" style="width: 100%;">
           <mat-label>Perfil</mat-label>
@@ -84,22 +93,42 @@ import { UserService } from '../user.service';
 export class CreateUserDialogComponent {
   form: FormGroup;
   loading = false;
+  showPasswordRequirements = false;
 
   constructor(
     private dialogRef: MatDialogRef<CreateUserDialogComponent>,
     private fb: FormBuilder,
-    private userService: UserService
+    private userService: UserService,
+    private passwordService: PasswordRequirementsService
   ) {
     this.form = this.fb.group({
       name: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      password: ['', [Validators.required, Validators.minLength(8)]],
       role: ['User', [Validators.required]]
+    });
+
+    // Monitorar mudanças na senha para validação
+    this.form.get('password')?.valueChanges.subscribe(password => {
+      if (password) {
+        const validation = this.passwordService.validatePassword(password);
+        this.showPasswordRequirements = !validation.isValid && password.length > 0;
+      } else {
+        this.showPasswordRequirements = false;
+      }
     });
   }
 
   onSubmit() {
     if (this.form.valid) {
+      const password = this.form.value.password;
+      const validation = this.passwordService.validatePassword(password);
+      
+      if (!validation.isValid) {
+        // Mostrar erro de validação
+        return;
+      }
+
       this.loading = true;
       const userData = this.form.value;
 

@@ -2,6 +2,7 @@ using CorporateTravel.Application.Interfaces;
 using CorporateTravel.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
+using MediatR;
 
 namespace CorporateTravel.Application;
 
@@ -14,6 +15,7 @@ public static class DependencyInjection
         
         // Register application services
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IPasswordRequirementsService, PasswordRequirementsService>();
         
         return services;
     }

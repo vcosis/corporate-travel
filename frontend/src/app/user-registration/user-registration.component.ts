@@ -11,6 +11,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { CommonModule } from '@angular/common';
 import { environment } from '../../environments/environment';
+import { PasswordRequirementsService } from '../core/password-requirements.service';
+import { PasswordRequirementsComponent } from '../shared/password-requirements/password-requirements.component';
 
 @Component({
   selector: 'app-user-registration',
@@ -23,7 +25,8 @@ import { environment } from '../../environments/environment';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatSelectModule
+    MatSelectModule,
+    PasswordRequirementsComponent
   ],
   templateUrl: './user-registration.component.html',
   styleUrls: ['./user-registration.component.scss']
@@ -32,6 +35,8 @@ export class UserRegistrationComponent {
   registrationForm: FormGroup;
   isLoading = false;
   hidePassword = true;
+  showPasswordRequirements = false;
+  passwordErrors: string[] = [];
 
   roles = [
     { value: 'User', label: 'User' },
@@ -43,15 +48,28 @@ export class UserRegistrationComponent {
     private fb: FormBuilder,
     private http: HttpClient,
     public router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private passwordService: PasswordRequirementsService
   ) {
     this.registrationForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', [Validators.required]],
       role: ['User', [Validators.required]]
     }, { validators: this.passwordMatchValidator });
+
+    // Monitorar mudanças na senha para validação
+    this.registrationForm.get('password')?.valueChanges.subscribe(password => {
+      if (password) {
+        const validation = this.passwordService.validatePassword(password);
+        this.passwordErrors = validation.errors;
+        this.showPasswordRequirements = !validation.isValid && password.length > 0;
+      } else {
+        this.passwordErrors = [];
+        this.showPasswordRequirements = false;
+      }
+    });
   }
 
   passwordMatchValidator(form: FormGroup) {
@@ -68,6 +86,18 @@ export class UserRegistrationComponent {
 
   onSubmit() {
     if (this.registrationForm.valid) {
+      const password = this.registrationForm.value.password;
+      const validation = this.passwordService.validatePassword(password);
+      
+      if (!validation.isValid) {
+        this.snackBar.open('Por favor, corrija os erros na senha: ' + validation.errors.join(', '), 'Fechar', {
+          duration: 5000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top'
+        });
+        return;
+      }
+
       this.isLoading = true;
       
       const userData = {
@@ -123,7 +153,7 @@ export class UserRegistrationComponent {
     }
     
     if (fieldName === 'password' && field?.hasError('minlength')) {
-      return 'Senha deve ter pelo menos 6 caracteres';
+      return 'Senha deve ter pelo menos 8 caracteres';
     }
     
     if (fieldName === 'confirmPassword' && field?.hasError('passwordMismatch')) {

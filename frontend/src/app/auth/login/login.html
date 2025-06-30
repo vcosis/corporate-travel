@@ -31,10 +31,17 @@
               Password is required
             </mat-error>
           </mat-form-field>
+
+          <!-- Mostrar requisitos de senha quando necessário -->
+          <app-password-requirements 
+            [password]="loginForm.get('password')?.value" 
+            [showRequirements]="showPasswordRequirements">
+          </app-password-requirements>
           
           <div *ngIf="loginError" class="error-message">
             <mat-icon>error</mat-icon>
-            <span>Invalid email or password</span>
+            <span *ngIf="passwordErrors.length > 0">{{ getPasswordErrors() }}</span>
+            <span *ngIf="passwordErrors.length === 0">Invalid email or password</span>
           </div>
           
           <button mat-raised-button color="primary" type="submit" 
@@ -48,21 +55,21 @@
     </mat-card>
     
     <div class="demo-credentials">
-      <h4>Credenciais de Demonstração:</h4>
+      <h4>Demo Credentials</h4>
       <div class="credential-item">
-        <h5>Administrador</h5>
-        <p><strong>Email:</strong> admin&#64;corporatetravel.com</p>
-        <p><strong>Senha:</strong> Admin&#64;123</p>
+        <h5>Admin User</h5>
+        <p><strong>Email:</strong> admin&#64;corporate.com</p>
+        <p><strong>Password:</strong> Admin123!</p>
       </div>
       <div class="credential-item">
-        <h5>Gerente</h5>
-        <p><strong>Email:</strong> manager&#64;corporatetravel.com</p>
-        <p><strong>Senha:</strong> Manager&#64;123</p>
+        <h5>Manager User</h5>
+        <p><strong>Email:</strong> manager&#64;corporate.com</p>
+        <p><strong>Password:</strong> Manager123!</p>
       </div>
       <div class="credential-item">
-        <h5>Usuário</h5>
-        <p><strong>Email:</strong> user&#64;corporatetravel.com</p>
-        <p><strong>Senha:</strong> User&#64;123</p>
+        <h5>Regular User</h5>
+        <p><strong>Email:</strong> user&#64;corporate.com</p>
+        <p><strong>Password:</strong> User123!</p>
       </div>
     </div>
   </div>

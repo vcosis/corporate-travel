@@ -95,7 +95,7 @@
               Nova senha é obrigatória
             </mat-error>
             <mat-error *ngIf="passwordForm.get('newPassword')?.hasError('minlength')">
-              Senha deve ter pelo menos 6 caracteres
+              Senha deve ter pelo menos 8 caracteres
             </mat-error>
           </mat-form-field>
 
@@ -107,10 +107,16 @@
               Confirmação é obrigatória
             </mat-error>
             <mat-error *ngIf="passwordForm.get('confirmPassword')?.hasError('minlength')">
-              Senha deve ter pelo menos 6 caracteres
+              Senha deve ter pelo menos 8 caracteres
             </mat-error>
           </mat-form-field>
         </div>
+
+        <!-- Mostrar requisitos de senha quando necessário -->
+        <app-password-requirements 
+          [password]="passwordForm.get('newPassword')?.value" 
+          [showRequirements]="showPasswordRequirements">
+        </app-password-requirements>
 
         <div class="password-error" *ngIf="passwordForm.hasError('passwordMismatch')">
           <mat-icon>error</mat-icon>
