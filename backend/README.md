@@ -1,112 +1,60 @@
 # Corporate Travel Backend
 
+## Visão geral da aplicação
+
+O **Corporate Travel** é um sistema para gestão de solicitações de viagens corporativas, voltado para empresas que desejam centralizar, aprovar e acompanhar pedidos de viagem de seus colaboradores.  
+Principais funcionalidades:
+- Cadastro e autenticação de usuários com diferentes papéis (Admin, Manager, User)
+- Solicitação, aprovação, reprovação e acompanhamento de pedidos de viagem
+- Notificações em tempo real para aprovações e atualizações de status (via SignalR)
+- Dashboard com estatísticas e indicadores de viagens
+- Gerenciamento de usuários e permissões
+- Histórico e filtros avançados de solicitações
+- Interface web moderna e responsiva (Angular)
+
+---
+
+## Principais decisões arquiteturais
+
+- **CQRS com MediatR:**  
+  O padrão CQRS (Command Query Responsibility Segregation) foi adotado para separar operações de leitura e escrita, facilitando a manutenção, testes e escalabilidade.
+
+- **SignalR para notificações em tempo real:**  
+  SignalR foi escolhido para prover comunicação em tempo real entre backend e frontend, permitindo que usuários recebam atualizações instantâneas sobre o status de suas solicitações de viagem.  
+  [Veja aqui a notificação funcionando.](docs/Funcionamento%20notifica%C3%A7%C3%A3o.gif)
+
+- **ASP.NET Core Identity:**  
+  Utilizado para autenticação e gerenciamento de usuários, garantindo segurança e flexibilidade na definição de papéis e permissões.
+
+- **Entity Framework Core + PostgreSQL:**  
+  O EF Core foi adotado para facilitar o mapeamento objeto-relacional e a manutenção do banco de dados, enquanto o PostgreSQL foi escolhido por sua robustez e compatibilidade com ambientes Docker.
+
+- **Angular no frontend:**  
+  O Angular foi escolhido para o frontend por sua maturidade, suporte a SPA, integração facilitada com APIs REST e ecossistema rico de componentes.
+
+- **Docker e Docker Compose:**  
+  Toda a stack é containerizada, facilitando o setup, testes e deploy em diferentes ambientes.
+
+- **Outras decisões relevantes:**  
+  - Uso de AutoMapper para simplificar o mapeamento entre entidades e DTOs.
+  - Serviços e injeção de dependência para promover baixo acoplamento e testabilidade.
+  - Padrão de repositório para abstração do acesso a dados.
+
+---
+
+## Proxy Configuration
+
+O sistema oferece duas opções de proxy:
+
+- **proxy.conf.json**: Usado para desenvolvimento local com o Angular (`ng serve`). Redireciona chamadas da interface web para o backend, evitando problemas de CORS e facilitando o desenvolvimento.
+- **proxy.docker.conf.json**: Usado quando o frontend está rodando em container Docker/Nginx, redirecionando as chamadas para o backend no ambiente de containers.
+
+**Por que foi criado este proxy?**  
+O proxy foi criado para permitir que o frontend (Angular) se comunique com o backend sem esbarrar em restrições de CORS, além de simplificar as URLs das chamadas HTTP no código do frontend. Isso garante que, tanto em desenvolvimento local quanto em ambiente Docker, as requisições sejam roteadas corretamente para a API, sem necessidade de alterar o código-fonte entre ambientes.
+
 ## Executando a aplicação
 
 ### Execução normal (sem seed)
 ```bash
 dotnet run
 ```
-
-### Execução com seed do banco de dados
-```bash
-dotnet run --seed
-```
-ou
-```bash
-dotnet run -s
-```
-
-### Execução com Docker Compose (Recomendado)
-```bash
-docker-compose up -d
-```
-
-Isso irá iniciar:
-- PostgreSQL (porta 5432)
-- Seq - Log Aggregation (porta 5341)
-- Backend API (porta 5178)
-
-## Parâmetros disponíveis
-
-- `--seed` ou `-s`: Executa o seed do banco de dados, criando usuários padrão e dados de exemplo
-  - Admin: admin@corporatetravel.com / Admin123!
-  - Manager: manager@corporatetravel.com / Manager123!
-  - User: user@corporatetravel.com / User123!
-
-## Configuração
-
-### Variáveis de Ambiente
-
-O projeto utiliza as seguintes variáveis de ambiente:
-
-- `ASPNETCORE_ENVIRONMENT`: Define o ambiente (Development, Production, etc.)
-- `ConnectionStrings__DefaultConnection`: String de conexão com o banco de dados PostgreSQL
-- `Jwt__Key`: Chave secreta para assinatura dos tokens JWT
-- `Jwt__Issuer`: Emissor do token JWT
-- `Jwt__Audience`: Audiência do token JWT
-
-### Configuração do Banco de Dados
-
-O projeto utiliza PostgreSQL como banco de dados principal. A string de conexão deve seguir o formato:
-
-```
-Host=localhost;Port=5432;Database=corporatetravel;Username=postgres;Password=postgres
-```
-
-### Configuração JWT
-
-As configurações JWT estão definidas no `appsettings.json`:
-
-```json
-{
-  "Jwt": {
-    "Key": "a-very-secret-key-that-is-long-enough-and-should-be-in-secrets",
-    "Issuer": "CorporateTravel.API",
-    "Audience": "CorporateTravel.Users"
-  }
-}
-```
-
-## Estrutura do Projeto
-
-### Camadas da Aplicação
-
-- **API**: Controllers e configuração da aplicação
-- **Application**: Casos de uso, DTOs e interfaces
-- **Domain**: Entidades e regras de negócio
-- **Infrastructure**: Implementação de repositórios e serviços externos
-
-### Padrões Utilizados
-
-- **CQRS**: Separação de comandos e consultas
-- **MediatR**: Implementação do padrão mediator
-- **Repository Pattern**: Abstração do acesso a dados
-- **Identity**: Autenticação e autorização
-- **JWT**: Tokens para autenticação stateless
-
-## Logging
-
-O projeto utiliza Serilog para logging estruturado com as seguintes configurações:
-
-- Console logging para desenvolvimento
-- File logging com rotação diária
-- Seq para agregação de logs (opcional)
-- Enriquecimento com contexto de ambiente e thread
-
-### Pacotes Serilog Utilizados
-
-- Serilog.AspNetCore
-- Serilog.Settings.Configuration
-- Serilog.Sinks.Console
-- Serilog.Sinks.File
-- Serilog.Sinks.Seq
-- Serilog.Enrichers.Environment
-- Serilog.Enrichers.Thread 
-
-## 👥 Usuários Padrão
-
-Após executar o seed do banco de dados:
-
-- **Admin**: admin@corporatetravel.com / Admin123!
-- **Manager**: manager@corporatetravel.com / Manager123!  
-- **User**: user@corporatetravel.com / User123! 
