@@ -108,5 +108,5 @@ O projeto utiliza Serilog para logging estruturado com as seguintes configuraç�
 Após executar o seed do banco de dados:
 
 - **Admin**: admin@corporatetravel.com / Admin123!
-- **Manager**: manager@corporatetravel.com / Manager123!  
-- **User**: user@corporatetravel.com / User123! 
+- **Manager**: manager@corporatetravel.com / Manager123!
+- **User**: user@corporatetravel.com / User123!
